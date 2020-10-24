@@ -13,6 +13,8 @@ Sumário
 
 # Importando bibliotecas
 import logging
+import os
+from os.path import isdir
 
 
 """
@@ -21,8 +23,9 @@ import logging
 ---------------------------------------------------
 """
 
-def log_config(logger, level=logging.DEBUG, log_format='%(levelname)s;%(asctime)s;%(filename)s;%(module)s;%(lineno)d;%(message)s',
-               log_filepath='log/application_log.log', filemode='a'):
+def log_config(logger, level=logging.DEBUG, 
+               log_format='%(levelname)s;%(asctime)s;%(filename)s;%(module)s;%(lineno)d;%(message)s',
+               log_filepath='exec_log/execution_log.log', filemode='a'):
     """
     Função que recebe um objeto logging e aplica configurações básicas ao mesmo
 
@@ -46,7 +49,11 @@ def log_config(logger, level=logging.DEBUG, log_format='%(levelname)s;%(asctime)
     formatter = logging.Formatter(log_format, datefmt='%Y-%m-%d %H:%M:%S')
 
     # Creating handlers
-    file_handler = logging.FileHandler(log_filepath, mode=filemode)
+    log_path = ''.join(log_filepath.split('/')[:-1])
+    if not isdir(log_path):
+        os.mkdir(log_path)
+
+    file_handler = logging.FileHandler(log_filepath, mode=filemode, encoding='utf-8')
     stream_handler = logging.StreamHandler()
 
     # Setting up formatter on handlers
