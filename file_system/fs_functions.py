@@ -16,11 +16,76 @@ Sumário
 # Importando bibliotecas
 import os
 import time
+import logging
+from os.path import isdir
 
 
 """
 ---------------------------------------------------
------------- 1. VALIDAÇÃO DE ARQUIVOS -------------
+------------ 1. CONFIGURAÇÃO INICIAL --------------
+        1.1 Configuração padrão de logs
+---------------------------------------------------
+"""
+
+def log_config(logger, level=logging.DEBUG, 
+               log_format='%(levelname)s;%(asctime)s;%(filename)s;%(module)s;%(lineno)d;%(message)s',
+               log_filepath='exec_log/execution_log.log', filemode='a'):
+    """
+    Função que recebe um objeto logging e aplica configurações básicas ao mesmo
+
+    Parâmetros
+    ----------
+    :param logger: objeto logger criado no escopo do módulo [type: logging.getLogger()]
+    :param level: level do objeto logger criado [type: level, default: logging.DEBUG]
+    :param log_format: formato do log a ser armazenado [type: string]
+    :param log_filepath: caminho onde o arquivo .log será armazenado [type: string, default: 'log/application_log.log']
+    :param filemode: tipo de escrita no arquivo de log [type: string, default: 'a' (append)]
+
+    Retorno
+    -------
+    :return logger: objeto logger pré-configurado
+    """
+
+    # Setting level for the logger object
+    logger.setLevel(level)
+
+    # Creating a formatter
+    formatter = logging.Formatter(log_format, datefmt='%Y-%m-%d %H:%M:%S')
+
+    # Creating handlers
+    log_path = ''.join(log_filepath.split('/')[:-1])
+    if not isdir(log_path):
+        os.mkdir(log_path)
+
+    file_handler = logging.FileHandler(log_filepath, mode=filemode, encoding='utf-8')
+    stream_handler = logging.StreamHandler()
+
+    # Setting up formatter on handlers
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    # Adding handlers on logger object
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    return logger
+
+
+"""
+---------------------------------------------------
+------------ 1. CONFIGURAÇÃO INICIAL --------------
+        1.2 Instânciando objetos de logs
+---------------------------------------------------
+"""
+
+# Definindo objeto de log
+logger = logging.getLogger(__file__)
+logger = log_config(logger)
+
+
+"""
+---------------------------------------------------
+------------ 2. VALIDAÇÃO DE ARQUIVOS -------------
 ---------------------------------------------------
 """
 
@@ -47,19 +112,21 @@ def valida_arquivo_origem(origem, nome_arquivo):
     else:
         doNothing()
     """
-
+    
     # Validando presença do arquivo na origem
     try:
         arquivos_na_origem = os.listdir(path=origem)
         if nome_arquivo in arquivos_na_origem:
+            logger.info(f'Arquivo {nome_arquivo} presente na origem {origem}')
             return True
         else:
+            logger.warning(f'Arquivo {nome_arquivo} não presente na origem {origem}')
             return False
     except NotADirectoryError as e:
-        print(f'Parâmetro origem {origem} não é um diretório de rede. Exception lançada: \n{e}')
+        logger.error(f'Parâmetro origem {origem} não é um diretório de rede. Exception lançada: {e}')
         return False
     except FileNotFoundError as e:
-        print(f'Arquivo {nome_arquivo} não encontrado na origem. Exception lançada: \n{e}')
+        logger.error(f'Arquivo {nome_arquivo} não encontrado na origem. Exception lançada: {e}')
         return False
 
 def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
@@ -112,31 +179,31 @@ def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
         if janela == 'ano':
             ano_mod = int(time.strftime('%Y', time.localtime(file_mod_date)))
             if dt_valida == ano_mod:
-                print(msg_ok)
+                logger.info(msg_ok)
                 return True
             else:
-                print(msg_nok.replace('placeholder', ano_mod))
+                logger.warning(msg_nok.replace('placeholder', ano_mod))
                 return False
 
         # Janela selecionada: anomes
         elif janela == 'anomes':
             anomes_mod = int(time.strftime('%Y%m', time.localtime(file_mod_date)))
             if dt_valida == anomes_mod:
-                print(msg_ok)
+                logger.info(msg_ok)
                 return True
             else:
-                print(msg_nok.replace('placeholder', anomes_mod))
+                logger.warning(msg_nok.replace('placeholder', ano_mod))
                 return False
 
         # Janela selecionada: anomesdida
         elif janela == 'anomesdia':
             anomesdia_mod = int(time.strftime('%Y%m%d', time.localtime(file_mod_date)))
             if dt_valida == anomesdia_mod:
-                print(msg_ok)
+                logger.info(msg_ok)
                 return True
             else:
-                print(msg_nok.replace('placeholder', anomesdia_mod))
+                logger.warning(msg_nok.replace('placeholder', ano_mod))
                 return False     
     else:
-        # Arquivo não existente na origem
         return False
+

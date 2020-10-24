@@ -1,0 +1,9 @@
+ERROR;2020-10-24 15:38:18;fs_functions.py;fs_functions;127;Arquivo functions.py não encontrado na origem. Exception lançada: [WinError 3] O sistema não pode encontrar o caminho especificado: '/home/paninit/workspaces/python-components/file-system/'
+ERROR;2020-10-24 15:38:18;fs_functions.py;fs_functions;127;Arquivo functions.py não encontrado na origem. Exception lançada: [WinError 3] O sistema não pode encontrar o caminho especificado: '/home/paninit/workspaces/python-components/file-system/'
+WARNING;2020-10-24 15:46:04;fs_functions.py;fs_functions;123;Arquivo functions.py não presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+WARNING;2020-10-24 15:46:04;fs_functions.py;fs_functions;123;Arquivo functions.py não presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+WARNING;2020-10-24 15:46:44;fs_functions.py;fs_functions;123;Arquivo functions.py não presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+WARNING;2020-10-24 15:46:44;fs_functions.py;fs_functions;123;Arquivo functions.py não presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+INFO;2020-10-24 15:49:16;fs_functions.py;fs_functions;120;Arquivo fs_functions.py presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+INFO;2020-10-24 15:49:16;fs_functions.py;fs_functions;120;Arquivo fs_functions.py presente na origem C:/Users/thipa/Desktop/workspaces/python-components/file_system
+INFO;2020-10-24 15:49:16;fs_functions.py;fs_functions;192;A última modificação do arquivo fs_functions.py bate com o validador (anomes: 202010)

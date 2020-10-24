@@ -23,15 +23,16 @@ from fs_functions import *
 """
 
 # Parâmetros de validação
-origem = '/home/paninit/workspaces/python-components/file-system/'
-nome_arquivo = 'functions.py'
+#origem = '/home/paninit/workspaces/python-components/file-system/'
+origem = 'C:/Users/thipa/Desktop/workspaces/python-components/file_system'
+nome_arquivo = 'fs_functions.py'
 
 # 1. valida_arquivos_origem
 print('\nTestando função: valida_arquivo_origem()')
 if valida_arquivo_origem(origem, nome_arquivo=nome_arquivo):
-    print(f'Arquivo {nome_arquivo} presente na origem {origem}')
+    dum = 0
 else:
-    print(f'Arquivo não presente na origem')
+    dum = 1
 
 # 2. valida_dt_mod_arquivo
 print('\nTestando função: valida_dt_mod_arquivo()')
