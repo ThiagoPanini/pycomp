@@ -56,7 +56,7 @@ def log_config(logger, level=logging.DEBUG,
     # Creating handlers
     log_path = '/'.join(log_filepath.split('/')[:-1])
     if not isdir(log_path):
-        os.mkdir(log_path)
+        os.makedirs(log_path)
 
     file_handler = logging.FileHandler(log_filepath, mode=filemode, encoding='utf-8')
     stream_handler = logging.StreamHandler()
@@ -236,7 +236,18 @@ def copia_arquivo(origem, destino):
         try:
             shutil.copyfile(src=origem, dst=destino)
             logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
-        except Exception as e:
-            logger.error(f'Falha durante a cópia. Exception lançada: {e}')
+        except FileNotFoundError as e:
+            # Erro ao copiar arquivo pro destino
+            logger.warning(f'Falha ao copiar arquivo para o destino por inexistência do diretório. Exception lançada: {e}')
+            logger.debug(f'Criando novo diretório')
+            pasta_destino = '/'.join(destino.split('/')[:-1])
+            os.makedirs(pasta_destino)
+
+            # Tentando nova cópia
+            try:
+                shutil.copyfile(src=origem, dst=destino)
+                logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
+            except Exception as e:
+                logger.error(f'Falha ao copiar arquivo mesmo após criação do diretório destino. Exception lançada: {e}')
     else:
         logger.warning('Cópia não realizada')

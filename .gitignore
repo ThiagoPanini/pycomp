@@ -1,0 +1,8 @@
+# Diretórios de teste
+exec_log/
+testes/
+
+# Cache do Python
+*.pyc
+*.pyo
+**/__pycache__/
