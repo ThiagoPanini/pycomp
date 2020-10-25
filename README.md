@@ -6,7 +6,9 @@
 <div align="center">
   <strong>Fábrica de componentes Python</strong>
 </div>
+
 <br />
+
 Literalmente, uma fábrica de códigos em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
 
 ## Features
@@ -18,6 +20,8 @@ Literalmente, uma fábrica de códigos em Python criada para auxiliar implementa
   - Componentes desenvolvidos para facilitar o envio de e-mails customizados (ideia).
   
 - :thought_balloon: `Em andamento...`
+
+<br />
 
 ## Utilização
 
