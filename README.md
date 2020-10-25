@@ -21,8 +21,6 @@ Literalmente, uma fábrica de códigos em Python criada para auxiliar implementa
   
 - :thought_balloon: `Em andamento...`
 
-<br />
-
 ## Utilização
 
 Para consumir os componentes implementados, é necessário baixar o `zip` do repositório ou rodar o comando abaixo em um diretório específico da máquina:
