@@ -9,7 +9,13 @@
 
 <br />
 
+<div align="center">
 Literalmente, uma fábrica de códigos em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
+</div>
+
+## Table of Contents
+- [Features](#features)
+- [Utilização](#utilização)
 
 ## Features
 
