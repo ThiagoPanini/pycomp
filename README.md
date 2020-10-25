@@ -14,9 +14,10 @@ Literalmente, uma fábrica de códigos em Python criada para auxiliar implementa
 - :file_folder: `File System` 
   - Componentes criados para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros.
   
-- :thought_balloon: `Em andamento...`
+- :email: `E-mail`
+  - Componentes desenvolvidos para facilitar o envio de e-mails customizados (ideia).
   
-___
+- :thought_balloon: `Em andamento...`
 
 ## Utilização
 
