@@ -1,17 +1,20 @@
 <h1 align="center">Python Factory</h1>
 
 <div align="center">
-  :factory::factory::factory::factory::factory::factory:
+  :snake::factory::factory::factory::factory::factory::factory::snake:
+</div>
+<div align="center">
+  <strong>Fábrica de componentes Python</strong>
 </div>
 
 Literalmente, uma fábrica de códigos em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
 
 ## Features
 
-- ![#DD3867](https://placehold.it/15/DD3867/000000?text=+) `File System`
+- :file_folder: `File System` 
   - Componentes criados para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros.
   
-- ![#383CDD](https://placehold.it/15/383CDD/000000?text=+) `Em andamento...`
+- :thought_balloon: `Em andamento...`
   
 ___
 
