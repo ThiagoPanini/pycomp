@@ -38,13 +38,20 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 
 ## Utilização
 
-1. Para consumir os componentes implementados, é necessário baixar o `zip` do repositório ou rodar o comando abaixo em um diretório específico da máquina:
+Para consumir os componentes implementados, é necessário baixar o `zip` do repositório ou rodar o comando abaixo em um diretório específico da máquina:
 ```
 git clone https://github.com/ThiagoPanini/python-components.git
 ```
 
-2. Na sequência, é preciso instalar os pacotes utilizados nas implementações dos componentes. No diretório do projeto gerado pelo `git clone`, rodar:
-
+_[Opcional]_ Criação de um ambiente virtual Python para a utilização dos componentes em um projeto específico:
 ```
+mkdir <folder_for_venvs>
+python3 -m venv <venv_name>
+source <folder_for_venvs>/<venv_name>/bin/activate
+```
+
+Com o ambiente virtual Python do projeto ativo, navegar até o diretório gerado pelo `git clone` e instalando os pacotes necessários para a utilização dos componentes:
+```
+cd python-components
 pip install -r requirements.txt
 ```
