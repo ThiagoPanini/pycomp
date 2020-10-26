@@ -52,6 +52,7 @@ copia_arquivo(origem=source, destino=destino)
 # 4. controle_de_diretorio
 print('\n4. Testando função: controle_de_diretorio()')
 root = 'C:/Users/thipa/Desktop/workspaces/python-components'
-controle_root = controle_de_diretorio(root=root)
+output = os.path.join(root, 'testes/controle_root.csv')
+controle_root = controle_de_diretorio(root=root, output_filepath=output)
 
 print()
