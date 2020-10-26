@@ -1,5 +1,6 @@
 # Diretórios de teste
 exec_log/
+log/
 testes/
 
 # Cache do Python

@@ -49,4 +49,9 @@ source = origem + '/' + nome_arquivo
 destino = 'C:/Users/thipa/Desktop/workspaces/python-components/testes/copia_fs_functions.py'
 copia_arquivo(origem=source, destino=destino)
 
+# 4. controle_de_diretorio
+print('\n4. Testando função: controle_de_diretorio()')
+root = 'C:/Users/thipa/Desktop/workspaces/python-components'
+controle_root = controle_de_diretorio(root=root)
+
 print()

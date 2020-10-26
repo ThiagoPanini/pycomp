@@ -19,6 +19,7 @@ import time
 import logging
 from os.path import isdir
 import shutil
+from pandas import DataFrame
 
 
 """
@@ -155,8 +156,8 @@ def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
     # Verificando arquivo em diretório
     nome_arquivo = 'arquivo.txt'
     origem = 'C://Users/user/Desktop'
-    janela = {'anomes': 202009}
-    if valida_dt_mod_arquivo(origem=origem, nome_arquivo=nome_arquivo, janela=):
+    validador = {'anomes': 202009}
+    if valida_dt_mod_arquivo(origem=origem, nome_arquivo=nome_arquivo, validador=validador):
         doSomething()
     else:
         doNothing()
@@ -251,3 +252,68 @@ def copia_arquivo(origem, destino):
                 logger.error(f'Falha ao copiar arquivo mesmo após criação do diretório destino. Exception lançada: {e}')
     else:
         logger.warning('Cópia não realizada')
+
+def controle_de_diretorio(root, output_filepath=os.path.join(os.getcwd(), 'controle_root.csv')):
+    """
+    Função responsável por retornar parâmetros de controle de um determinado diretório
+
+    Parâmetros
+    ----------
+    :param root: caminho do diretório a ser analisado [type: string]
+    :param output_file: caminho do output em .csv do arquivo gerado [type: string, default: controle_root.csv]
+
+    Retorno
+    -------
+    :returns root_manager: arquivo salvo na rede com informações do diretório [type: pd.DataFrame]
+
+    Aplicação
+    ---------
+    root = '/home/user/folder/'
+    controle_root = controle_de_diretorio(root=root)
+    """
+
+    # Criando DataFrame e listas para armazenar informações
+    root_manager = DataFrame()
+    all_files = []
+    all_sizes = []
+    all_cdt = []
+    all_mdt = []
+    all_adt = []
+
+    # Iterando sobre todos os arquivos do diretório e subdiretórios
+    logger.debug('Iterando sobre os arquivos do diretório root')
+    for path, _, files in os.walk(root):
+        for name in files:
+            # Caminho completo do arquivo
+            caminho = os.path.join(path, name)
+
+            # Retornando variáveis
+            all_files.append(caminho)
+            all_sizes.append(os.path.getsize(caminho))
+            all_cdt.append(os.path.getctime(caminho))
+            all_mdt.append(os.path.getmtime(caminho))
+            all_adt.append(os.path.getatime(caminho))
+
+    # Preenchendo DataFrame
+    path_splitter = '\\' if caminho.count('\\') >= caminho.count('/') else '/'
+    logger.debug('Preenchendo variáveis de controle')
+    root_manager['caminho'] = all_files
+    root_manager['arquivo'] = [file.split(path_splitter)[-1] for file in all_files]
+    root_manager['tamanho_kb'] = [size / 1024 for size in all_sizes]
+    root_manager['dt_criacao'] = [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cdt)) for cdt in all_cdt] 
+    root_manager['dt_ult_modif'] = [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(mdt)) for mdt in all_mdt]
+    root_manager['dt_ult_acesso'] = [time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(adt)) for adt in all_adt]
+
+    # Salvando arquivo gerado
+    logger.debug('Salvando arquivo de controle gerado')
+    try:
+        path_splitter = '\\' if output_filepath.count('\\') >= output_filepath.count('/') else '/'
+        output_dir = path_splitter.join(output_filepath.split(path_splitter)[:-1])
+        if not isdir(output_dir):
+            os.makedirs(output_dir)
+        root_manager.to_csv(output_filepath)
+        logger.info(f'Arquivo de controle para o diretório {root} salvo com sucesso')
+    except Exception as e:
+        logger.error(f'Erro ao salvar arquivo de controle. Exception lançada: {e}')
+
+    return root_manager
