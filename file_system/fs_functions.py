@@ -174,7 +174,7 @@ def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
     msg_nok = f'A última modificação do arquivo {nome_arquivo} (placeholder) não bate com o validador ({dt_valida})'
 
     # Validando presença do arquivo na origem e coletando última data de modificação
-    if valida_arquivo_origem(origem=origem, nome_arquivo=nome_arquivo):
+    try:
         file_mod_date = os.path.getmtime(os.path.join(origem, nome_arquivo))
 
         # Janela selecionada: ano
@@ -206,7 +206,8 @@ def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
             else:
                 logger.warning(msg_nok.replace('placeholder', str(anomesdia_mod)))
                 return False     
-    else:
+    except FileNotFoundError as e:
+        logger.error(f'Arquivo {nome_arquivo} não encontrado na origem. Exception lançada: {e}')
         return False
 
 def copia_arquivo(origem, destino):
@@ -231,31 +232,32 @@ def copia_arquivo(origem, destino):
     """
 
     # Verificando se o arquivo está presente na origem
-    diretorio = '/'.join(origem.split('/')[:-1])
-    nome_arquivo = origem.split('/')[-1]
-    if valida_arquivo_origem(origem=diretorio, nome_arquivo=nome_arquivo):
+    try:
+        shutil.copyfile(src=origem, dst=destino)
+        logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
+    except FileNotFoundError as e:
+        # Erro ao copiar arquivo pro destino
+        logger.warning(f'Falha ao copiar arquivo para o destino por inexistência do diretório. Exception lançada: {e}')
+        path_splitter = '\\' if destino.count('\\') >= destino.count('/') else '/'
+        pasta_destino = path_splitter.join(destino.split(path_splitter)[:-1])
+        logger.debug(f'Criando novo diretório {pasta_destino}')
+        os.makedirs(pasta_destino)
+
+        # Tentando nova cópia
         try:
             shutil.copyfile(src=origem, dst=destino)
             logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
-        except FileNotFoundError as e:
-            # Erro ao copiar arquivo pro destino
-            logger.warning(f'Falha ao copiar arquivo para o destino por inexistência do diretório. Exception lançada: {e}')
-            logger.debug(f'Criando novo diretório')
-            pasta_destino = '/'.join(destino.split('/')[:-1])
-            os.makedirs(pasta_destino)
-
-            # Tentando nova cópia
-            try:
-                shutil.copyfile(src=origem, dst=destino)
-                logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
-            except Exception as e:
-                logger.error(f'Falha ao copiar arquivo mesmo após criação do diretório destino. Exception lançada: {e}')
-    else:
-        logger.warning('Cópia não realizada')
+        except Exception as e:
+            logger.error(f'Falha ao copiar arquivo mesmo após criação do diretório destino. Exception lançada: {e}')
 
 def controle_de_diretorio(root, output_filepath=os.path.join(os.getcwd(), 'controle_root.csv')):
     """
-    Função responsável por retornar parâmetros de controle de um determinado diretório
+    Função responsável por retornar parâmetros de controle de um determinado diretório:
+        - Caminho raíz;
+        - Nome do arquivo;
+        - Data e hora de criação;
+        - Data e hora de modificação;
+        - Data e hora do último acesso
 
     Parâmetros
     ----------
