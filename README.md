@@ -43,11 +43,12 @@ Para consumir os componentes implementados, é necessário baixar o `zip` do rep
 git clone https://github.com/ThiagoPanini/python-components.git
 ```
 
-_[Opcional]_ Criação de um ambiente virtual Python para a utilização dos componentes em um projeto específico:
+_Opcional:_ Criação de um ambiente virtual Python para a utilização dos componentes em um projeto específico:
 ```
-mkdir <folder_for_venvs>
+mkdir ~/<folder_for_venvs>
+cd ~/<folder_for_venvs>
 python3 -m venv <venv_name>
-source <folder_for_venvs>/<venv_name>/bin/activate
+source ~/<folder_for_venvs>/<venv_name>/bin/activate
 ```
 
 Com o ambiente virtual Python do projeto ativo, navegar até o diretório gerado pelo `git clone` e instalando os pacotes necessários para a utilização dos componentes:
