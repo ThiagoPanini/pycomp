@@ -53,7 +53,7 @@ setup(
         'Topic :: Software Development',
         'Programming Language :: Python :: 3',
     ],
-    python_requires=">=3.8.6"
+    python_requires=">=3.0.0"
 )
 
 # Hint: publicando Source Archive (tar.gz) e Built Distribution (.whl)
