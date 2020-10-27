@@ -17,13 +17,17 @@ Literalmente, uma fábrica de códigos em Python criada para auxiliar implementa
 
 ## Features
 <sub>Componentes marcados com * não foram homologadas
-- :file_folder: __File System__: componentes criados para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros. Entre os componentes já implementados, é possível listar:
+- :file_folder: __file_system__: componentes criados para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros. Entre os componentes já implementados, é possível listar:
   - `valida_arquivo_origem()*`
   - `valida_dt_mod_arquivo()*`
   - `copia_arquivo()*`
   - `controle_de_diretorio()*`
   
-- :email: __E-mail__: componentes desenvolvidos para facilitar o envio de e-mails customizados (ideia).
+- :pencil: __logs__: componentes criados para facilitar a geração e o armazenamento de logs de execução dos demais módulos.
+  - `log_config()*`
+  
+- :robot: __ml__: produtos criados com a proposta de auxiliar a construção de pipelines de pré-processamento de dados e o treinamento de modelos de Machine Learning, facilitando assim o desenvolvimento de grandes projetos na esfera de aprendizado de máquina.
+  - `transformers.py`
   
 - :thought_balloon: __Em andamento...__
 
@@ -32,8 +36,8 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 |                            | Funções           | Classes         | Componentes Totais | Homologados  |
 | -------------------------- | :---------------: | :-------------: | :-------------: | :-------------: |
 | File System                |         4         |        0        |        0        |        0        |
-| E-mail                     |         0         |        0        |        0        |        0        |
-| Machine Learning           |         0         |        0        |        0        |        0        |
+| Logs                       |         1         |        0        |        0        |        0        |
+| Machine Learning           |         0         |        5        |        0        |        0        |
 
 
 ## Utilização
