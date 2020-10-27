@@ -30,6 +30,15 @@ Literalmente, uma fábrica de códigos em Python criada para auxiliar implementa
   
 - :robot: __ml__: produtos criados com a proposta de auxiliar a construção de pipelines de pré-processamento de dados e o treinamento de modelos de Machine Learning, facilitando assim o desenvolvimento de grandes projetos na esfera de aprendizado de máquina.
   - `transformers.py`
+    - `ColsFormatting()*`
+    - `FeatureSelection()*`
+    - `TargetDefinition()*`
+    - `DropDuplicates()*`
+    - `SplitData()*`
+    - `DummiesEncoding()*`
+    - `FillNullData()*`
+    - `DropNullData()*`
+    - `TopFeaturesSelector()*`
   
 - :thought_balloon: __Em andamento...__
 
@@ -39,7 +48,7 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 | -------------------------- | :---------------: | :-------------: | :-------------: | :-------------: |
 | File System                |         4         |        0        |        0        |        0        |
 | Logs                       |         1         |        0        |        0        |        0        |
-| Machine Learning           |         0         |        5        |        0        |        0        |
+| Machine Learning           |         0         |        9        |        0        |        0        |
 
 
 ## Utilização
