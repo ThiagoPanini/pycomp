@@ -1,7 +1,7 @@
 # Diretórios de teste
 exec_log/
 log/
-testes/
+tests/
 
 # Cache do Python
 *.pyc
