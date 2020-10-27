@@ -20,7 +20,7 @@ Sumário
 
 # Importando bibliotecas
 import logging
-from logs import log_config
+from logs.log_config import *
 import os
 import time
 from os.path import isdir

@@ -23,7 +23,7 @@ Sumário
 
 # Importando bibliotecas
 import logging
-from logs import log_config
+from logs.log_config import *
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
