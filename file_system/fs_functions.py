@@ -8,15 +8,21 @@ realizadas no sistema operacional, como validação e
 cópia de arquivos.
 
 Sumário
--------
-1. Validação de Arquivos
-2. Cópia de Arquivos
+-----------------------------------
+1. Configuração Inicial
+    1.1 Instanciando Objeto de Log
+2. Validação e Manuseio de Arquivos
+    2.1 Validação na Origem
+    2.1 Cópia de Arquivos
+3. Controle de Diretório
+-----------------------------------
 """
 
 # Importando bibliotecas
+import logging
+from logs import log_config
 import os
 import time
-import logging
 from os.path import isdir
 import shutil
 from pandas import DataFrame
@@ -25,58 +31,7 @@ from pandas import DataFrame
 """
 ---------------------------------------------------
 ------------ 1. CONFIGURAÇÃO INICIAL --------------
-        1.1 Configuração padrão de logs
----------------------------------------------------
-"""
-
-def log_config(logger, level=logging.DEBUG, 
-               log_format='%(levelname)s;%(asctime)s;%(filename)s;%(module)s;%(lineno)d;%(message)s',
-               log_filepath='exec_log/execution_log.log', filemode='a'):
-    """
-    Função que recebe um objeto logging e aplica configurações básicas ao mesmo
-
-    Parâmetros
-    ----------
-    :param logger: objeto logger criado no escopo do módulo [type: logging.getLogger()]
-    :param level: level do objeto logger criado [type: level, default: logging.DEBUG]
-    :param log_format: formato do log a ser armazenado [type: string]
-    :param log_filepath: caminho onde o arquivo .log será armazenado [type: string, default: 'log/application_log.log']
-    :param filemode: tipo de escrita no arquivo de log [type: string, default: 'a' (append)]
-
-    Retorno
-    -------
-    :return logger: objeto logger pré-configurado
-    """
-
-    # Setting level for the logger object
-    logger.setLevel(level)
-
-    # Creating a formatter
-    formatter = logging.Formatter(log_format, datefmt='%Y-%m-%d %H:%M:%S')
-
-    # Creating handlers
-    log_path = '/'.join(log_filepath.split('/')[:-1])
-    if not isdir(log_path):
-        os.makedirs(log_path)
-
-    file_handler = logging.FileHandler(log_filepath, mode=filemode, encoding='utf-8')
-    stream_handler = logging.StreamHandler()
-
-    # Setting up formatter on handlers
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
-
-    # Adding handlers on logger object
-    logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
-
-    return logger
-
-
-"""
----------------------------------------------------
------------- 1. CONFIGURAÇÃO INICIAL --------------
-        1.2 Instânciando objetos de logs
+        1.1 Instanciando Objetos de Log
 ---------------------------------------------------
 """
 
@@ -87,7 +42,8 @@ logger = log_config(logger)
 
 """
 ---------------------------------------------------
------------- 2. VALIDAÇÃO DE ARQUIVOS -------------
+------- 2. VALIDAÇÃO E MANUSEIO DE ARQUIVOS -------
+            2.1 Validação na Origem
 ---------------------------------------------------
 """
 
@@ -210,6 +166,14 @@ def valida_dt_mod_arquivo(origem, nome_arquivo, **kwargs):
         logger.error(f'Arquivo {nome_arquivo} não encontrado na origem. Exception lançada: {e}')
         return False
 
+
+"""
+---------------------------------------------------
+------- 2. VALIDAÇÃO E MANUSEIO DE ARQUIVOS -------
+               2.2 Cópia de Arquivos
+---------------------------------------------------
+"""
+
 def copia_arquivo(origem, destino):
     """
     Função responsável por copiar um arquivo definido em uma origem para um destino
@@ -249,6 +213,13 @@ def copia_arquivo(origem, destino):
             logger.info(f'Cópia realizada com sucesso. Origem: {origem} - Destino: {destino}')
         except Exception as e:
             logger.error(f'Falha ao copiar arquivo mesmo após criação do diretório destino. Exception lançada: {e}')
+
+
+"""
+---------------------------------------------------
+------------ 2. CONTROLE DE DIRETÓRIOS ------------
+---------------------------------------------------
+"""
 
 def controle_de_diretorio(root, output_filepath=os.path.join(os.getcwd(), 'controle_root.csv')):
     """
