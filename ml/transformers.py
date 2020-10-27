@@ -24,6 +24,8 @@ Sumário
 # Importando bibliotecas
 import logging
 from logs import log_config
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.model_selection import train_test_split
 
 
 """
@@ -47,14 +49,19 @@ logger = log_config(logger)
 
 class ColsFormatting(BaseEstimator, TransformerMixin):
     """
-    This class applies lower(), strip() and replace() method on a pandas DataFrame object.
-    It's not necessary to pass anything as args.
+    Classe responsável por aplicar formatação customizada nas colunas de um DataFrame
+    a partir das funções lower(), strip() e replace().
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
-    Return
+    Parâmetros
+    ----------
+    None
+
+    Retorno
     ------
-    :return: df: pandas DataFrame after cols formatting [type: pd.DataFrame]
+    :return: df: pandas DataFrame após a formatação das colunas [type: pd.DataFrame]
 
-    Application
+    Aplicação
     -----------
     cols_formatter = ColsFormatting()
     df_custom = cols_formatter.fit_transform(df_old)
@@ -70,18 +77,19 @@ class ColsFormatting(BaseEstimator, TransformerMixin):
 
 class FeatureSelection(BaseEstimator, TransformerMixin):
     """
-    This class filters a dataset based on a set of features passed as argument.
+    Classe responsável por filtrar as colunas de um DataFrame
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
-    Parameters
+    Parêmetros
     ----------
-    :param features: set of features to be selected on a DataFrame [type: list]
+    :param features: lista de colunas a serem filtradas do DataFrame [type: list]
 
-    Return
-    ------
-    :return: df: pandas DataFrame after filtering attributes [type: pd.DataFrame]
+    Retorno
+    -------
+    :return: df: pandas DataFrame após a filtragem dos atributos [type: pd.DataFrame]
 
-    Application
-    -----------
+    Aplicação
+    ---------
     selector = FeatureSelection(features=model_features)
     df_filtered = selector.fit_transform(df)
     """
@@ -98,21 +106,23 @@ class FeatureSelection(BaseEstimator, TransformerMixin):
 
 class TargetDefinition(BaseEstimator, TransformerMixin):
     """
-    This class transform a categorical target column into a numerical one base on a positive_class
+    Classe responsável por transformar uma coluna target em uma coluna numérica baseada
+    em uma entrada da classe positiva.
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
-    Parameters
+    Parâmetros
     ----------
-    :param target_col: reference for the target column on the dataset [type: string]
-    :param pos_class: entry reference for positive class in the new target [type: string]
-    :param new_target_name: name of the new column created after the target mapping [type: string, default: 'target]
+    :param target_col: referência para a coluna original de target do DataFrame [type: string]
+    :param pos_class: entrada da classe positiva na coluna original de target [type: string]
+    :param new_target_name: nome da nova coluna criada após o mapeamento [type: string, default: 'target]
 
-    Return
-    ------
-    :return: df: pandas DataFrame after target mapping [pd.DataFrame]
+    Retorno
+    -------
+    :return: df: pandas DataFrame após o mapeamento [pd.DataFrame]
 
-    Application
-    -----------
-    target_prep = TargetDefinition(target_col='class_target', pos_class='Some Category', new_target_name='target')
+    Aplicação
+    ---------
+    target_prep = TargetDefinition(target_col='original_target', pos_class='DETRATOR', new_target_name='target')
     df = target_prep.fit_transform(df)
     """
 
@@ -121,33 +131,39 @@ class TargetDefinition(BaseEstimator, TransformerMixin):
         self.pos_class = pos_class
         self.new_target_name = new_target_name
 
-        # Sanity check: new_target_name may differ from target_col
+        # Sanity check: new_target_name deve ser diferente da original target_col
         if self.target_col == self.new_target_name:
-            print('[WARNING]')
-            print(f'New target column named {self.new_target_name} must differ from raw one named {self.target_col}')
+            self.flag_equal = 1
 
     def fit(self, df, y=None):
         return self
 
     def transform(self, df, y=None):
-        # Applying the new target rule based on positive class
+        # Aplicando o mapeamento baseado na entrada da classe positiva
         df[self.new_target_name] = df[self.target_col].apply(lambda x: 1 if x == self.pos_class else 0)
 
-        # Dropping the old target column
-        return df.drop(self.target_col, axis=1)
+        # Validando drop da coluna antiga de target
+        if self.flag_equal:
+            return df
+        else:
+            return df.drop(self.target_col, axis=1)
 
 
 class DropDuplicates(BaseEstimator, TransformerMixin):
     """
-    This class filters a dataset based on a set of features passed as argument.
-    It's not necessary to pass anything as args.
+    Classe responsável por dropar duplicatas em um DataFrame.
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
-    Return
-    ------
-    :return: df: pandas DataFrame dropping duplicates [type: pd.DataFrame]
+    Parâmetros
+    ----------
+    None
 
-    Application
-    -----------
+    Retorno
+    -------
+    :return: df: pandas DataFrame sem duplicatas [type: pd.DataFrame]
+
+    Aplicação
+    ---------
     dup_dropper = DropDuplicates()
     df_nodup = dup_dropper.fit_transform(df)
     """
@@ -161,28 +177,31 @@ class DropDuplicates(BaseEstimator, TransformerMixin):
 
 class SplitData(BaseEstimator, TransformerMixin):
     """
-    This class helps splitting data into training and testing and it can be used at the end of a pre_processing pipe.
-    In practice, the class applies the train_test_split() function from sklearn.model_selection module.
+    Classe responsável por auxiliar a separação de uma base de dados em treino e teste
+    a partir da aplicação da função train_test_split() do módulo sklearn.model_selection.
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
-    Parameters
+    Parâmetros
     ----------
-    :param target: reference of the target feature on the dataset [type: string]
-    :param test_size: test_size param of train_test_split() function [type: float, default: .20]
-    :param random_state: random_state param of train_test_split() function [type: int, default: 42]
+    :param target: referência da variável target no dataset [type: string]
+    :param test_size: percentual a ser direcionado para o conjunto de teste [type: float, default: .20]
+    :param random_state: semente randômica [type: int, default: 42]
 
-    X_: attribute associated with the features dataset before splitting [1]
-    y_: attribute associated with the target array before splitting [1]
-        [1] The X_ and y_ attributes are initialized right before splitting and can be retrieved later in the script.
+    Dicas Adicionais
+    ----------------
+    X_: atributo associado às features do dataset antes do split [1]
+    y_: atributo associado ao target do dataset antes do split [1]
+        [1] Os atributos X_ e y_ são inicializados no momento antes do split e podem ser retornados no decorrer do script
 
-    Return
+    Retorno
     ------
-    :return: X_train: DataFrame for training data [type: pd.DataFrame]
-             X_test: DataFrame for testing data [type: pd.DataFrame]
-             y_train: array for training target data [type: np.array]
-             y_test: array for testing target data [type: np.array]
+    :return: X_train: DataFrame referente aos dados de treino [type: pd.DataFrame]
+             X_test: DataFrame referente aos dados de teste [type: pd.DataFrame]
+             y_train: array com o target de treino [type: np.array]
+             y_test: array com o target de teste [type: np.array]
 
-    Application
-    -----------
+    Aplicação
+    ---------
     splitter = SplitData(target='target')
     X_train, X_test, y_train, y_test = splitter.fit_transform(df)
     """
@@ -196,7 +215,7 @@ class SplitData(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, df, y=None):
-        # Returning X and y attributes (those can be retrieved in the future)
+        # Retornando os atributos X_ e y_
         self.X_ = df.drop(self.target, axis=1)
         self.y_ = df[self.target].values
 
