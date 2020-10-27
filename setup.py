@@ -35,7 +35,7 @@ __author_email__ = 'thipanini94@gmail.com'
 
 # Criando setup
 setup(
-    name='dsoapv_factory',
+    name='bebop',
     version=__version__,
     author=__author__,
     author_email=__author_email__,
@@ -55,3 +55,6 @@ setup(
     ],
     python_requires=">=3.8.6"
 )
+
+# Hint: publicando Source Archive (tar.gz) e Built Distribution (.whl)
+# python3 setup.py sdist bdist_wheel

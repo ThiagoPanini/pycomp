@@ -24,6 +24,8 @@ Sumário
 # Importando bibliotecas
 import logging
 from logs import log_config
+import pandas as pd
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split
 
@@ -42,7 +44,7 @@ logger = log_config(logger)
 
 """
 ---------------------------------------------------
------------- 2. CUSTOM TRANSFORMERS --------------
+------------ 2. CUSTOM TRANSFORMERS ---------------
         2.1 Pipelines de Pré Processamento
 ---------------------------------------------------
 """
@@ -223,28 +225,29 @@ class SplitData(BaseEstimator, TransformerMixin):
 
 
 """
------------------------------------
------ 2. CUSTOM TRANSFORMERS ------
-    2.2 Preparation Pipelines
------------------------------------
+---------------------------------------------------
+------------ 2. CUSTOM TRANSFORMERS ---------------
+           2.2 Pipelines de DataPrep
+---------------------------------------------------
 """
-
 
 class DummiesEncoding(BaseEstimator, TransformerMixin):
     """
-    This class applies the encoding on categorical data using pandas get_dummies() method. It also retrieves the
-    features after the encoding so it can be used further on the script
+    Classe responsável por aplicar o processo de encoding em dados categóricos utilizando o método
+    get_dummies() do pandas. Além disso, essa classe reserva as features após o processo de encoding,
+    permitindo seu retorno e utilização ao longo do script.
+    Esta classe deve ser utilizada em um pipeline de dados categóricos.
 
-    Parameters
+    Parâmetros
     ----------
-    :param dummy_na: flag that guides the encoding of NaN values on categorical features [type: bool, default: True]
+    :param dummy_na: flag responsável por guitar o encoding dos valores nulos [type: bool, default: True]
 
-    Return
-    ------
-    :return: X_dum: Dataframe object (with categorical features) after encoding [type: pd.DataFrame]
+    Retorno
+    -------
+    :return: X_dum: Dataframe (com dados categóricos) após o encoding [type: pd.DataFrame]
 
-    Application
-    -----------
+    Aplicação
+    ---------
     encoder = DummiesEncoding(dummy_na=True)
     X_encoded = encoder.fit_transform(df[cat_features])
     """
@@ -257,17 +260,17 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
 
-        # Saving features into class attribute
+        # Salvando features em um atributo da classe
         self.cat_features_ori = list(X.columns)
 
-        # Applying encoding with pandas get_dummies()
+        # Aplicando encoding
         X_cat_dum = pd.get_dummies(X, dummy_na=self.dummy_na)
 
-        # Joining datasets and dropping original columns before encoding
+        # Unindo datasets e dropando colunas originals
         X_dum = X.join(X_cat_dum)
         X_dum = X_dum.drop(self.cat_features_ori, axis=1)
 
-        # Retrieving features after encoding
+        # Salvando features após o encoding
         self.features_after_encoding = list(X_dum.columns)
 
         return X_dum
@@ -275,19 +278,20 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
 
 class FillNullData(BaseEstimator, TransformerMixin):
     """
-    This class fills null data. It's possible to select just some attributes to be filled with different values
+    Classe responsável por preencher dados nulos.
+    Esta classe deve ser utilizada em um pipeline de dados numéricos.
 
-    Parameters
+    Parâmetros
     ----------
-    :param cols_to_fill: columns to be filled. Leave None if all the columns will be filled [type: list, default: None]
-    :param value_fill: value to be filled on the columns [type: int, default: 0]
+    :param cols_to_fill: colunas a serem preenchidas - set None para preencher todas as colunas [type: list, default: None]
+    :param value_fill: valor a ser preenchido nas colunas [type: int, default: 0]
 
-    Return
-    ------
-    :return: X: DataFrame object with NaN data filled [type: pd.DataFrame]
+    Retorno
+    -------
+    :return: X: DataFrame com dados nulos preenchidos [type: pd.DataFrame]
 
-    Application
-    -----------
+    Aplicação
+    ---------
     filler = FillNullData(cols_to_fill=['colA', 'colB', 'colC'], value_fill=-999)
     X_filled = filler.fit_transform(X)
     """
@@ -300,7 +304,7 @@ class FillNullData(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        # Filling null data according to passed args
+        # Preenchendo dados nulos
         if self.cols_to_fill is not None:
             X[self.cols_to_fill] = X[self.cols_to_fill].fillna(value=self.value_fill)
             return X
@@ -310,19 +314,19 @@ class FillNullData(BaseEstimator, TransformerMixin):
 
 class DropNullData(BaseEstimator, TransformerMixin):
     """
-    This class drops null data. It's possible to select just some attributes to be filled with different values
+    Classe responsável por droppar dados nulos a partir do método dropna()
 
-    Parameters
+    Parâmetros
     ----------
-    :param cols_dropna: columns to be filled. Leave None if all the columns will be filled [type: list, default: None]
+    :param cols_dropna: colunas cujos nulos serão dropados - set None para considerar todas [type: list, default: None]
 
-    Return
-    ------
-    :return: X: DataFrame object with NaN data filled [type: pd.DataFrame]
+    Retorno
+    -------
+    :return: X: DataFrame sem dados nulos [type: pd.DataFrame]
 
     Application
     -----------
-    null_dropper = DropNulldata(cols_to_fill=['colA', 'colB', 'colC'], value_fill=-999)
+    null_dropper = DropNulldata(cols_dropna=['colA', 'colB', 'colC'])
     X = null_dropper.fit_transform(X)
     """
 
@@ -333,7 +337,7 @@ class DropNullData(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        # Filling null data according to passed args
+        # Dropando nulos
         if self.cols_dropna is not None:
             X[self.cols_dropna] = X[self.cols_dropna].dropna()
             return X
@@ -343,19 +347,19 @@ class DropNullData(BaseEstimator, TransformerMixin):
 
 class TopFeatureSelector(BaseEstimator, TransformerMixin):
     """
-    This class selects the top k most important features from a trained model
+    Classe responsável por selecionar as top k features mais importantes de um modelo treinado
 
-    Parameters
+    Parâmetros
     ----------
-    :param feature_importance: array with feature importance given by a trained model [np.array]
-    :param k: integer that defines the top features to be filtered from the array [type: int]
+    :param feature_importance: array com a importâncias das features retornado de um modelo treinado [np.array]
+    :param k: define as top k features a serem filtradas do array [type: int]
 
-    Return
-    ------
-    :return: pandas DataFrame object filtered by the k important features [pd.DataFrame]
+    Retorno
+    -------
+    :return: DataFrame filtrado pelas top k features mais importantes [pd.DataFrame]
 
-    Application
-    -----------
+    Aplicação
+    ---------
     feature_selector = TopFeatureSelector(feature_importance, k=10)
     X_selected = feature_selector.fit_transform(X)
     """
@@ -368,4 +372,5 @@ class TopFeatureSelector(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        return X[:, indices_of_top_k(self.feature_importance, self.k)]
+        indices = np.sort(np.argpartition(np.array(self.feature_importance), -self.k)[-self.k:])
+        return X[:, indices]
