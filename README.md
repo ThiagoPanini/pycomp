@@ -1,7 +1,7 @@
 <h1 align="center">Bebop Python Factory</h1>
 
 <div align="center">
-  :snake::factory::factory::factory::factory::factory::factory::rocket:
+  :snake::factory::factory::factory::factory::factory::factory::snake:
 </div>
 <div align="center">
   <strong>Fábrica de componentes Python</strong>
