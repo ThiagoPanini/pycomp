@@ -14,10 +14,9 @@ Sumário
 -----------------------------------
 1. Configuração Inicial
     1.1 Instanciando Objeto de Log
-2. Validação e Manuseio de Arquivos
-    2.1 Validação na Origem
-    2.1 Cópia de Arquivos
-3. Controle de Diretório
+2. Transformadores
+    2.1. Pipelines Iniciais
+    2.2. Pipelines de Data Prep
 -----------------------------------
 """
 
@@ -136,6 +135,8 @@ class TargetDefinition(BaseEstimator, TransformerMixin):
         # Sanity check: new_target_name deve ser diferente da original target_col
         if self.target_col == self.new_target_name:
             self.flag_equal = 1
+        else:
+            self.flag_equal = 0
 
     def fit(self, df, y=None):
         return self
