@@ -1,4 +1,4 @@
-<h1 align="center">Python Factory</h1>
+<h1 align="center">Bebop Python Factory</h1>
 
 <div align="center">
   :snake::factory::factory::factory::factory::factory::factory::snake:
