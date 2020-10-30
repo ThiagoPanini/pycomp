@@ -1,25 +1,27 @@
 """
 ---------------------------------------------------
-------------------- TÓPICO: Log -------------------
+------------------ TÓPICO: Logs -------------------
 ---------------------------------------------------
-Script python responsável por alocar funções úteis
-para auxiliar a geração e o armazenamento de logs
-em módulos pares
+Módulo contendo componentes relacionados a geração 
+e ao armazenamento de logs de módulos pares
+
 
 Sumário
 -------
-1. Configuração do log
+1. Configuração Inicial
+    1.1 Configuração Padrão de Log
 """
 
 # Importando bibliotecas
 import logging
-import os
+from os import makedirs
 from os.path import isdir
 
 
 """
 ---------------------------------------------------
------------- 1. CONFIGURAÇÃO DE LOGS --------------
+------------ 1. CONFIGURAÇÃO INICIAL --------------
+         1.1 Configuração Padrão de Log
 ---------------------------------------------------
 """
 
@@ -49,9 +51,9 @@ def log_config(logger, level=logging.DEBUG,
     formatter = logging.Formatter(log_format, datefmt='%Y-%m-%d %H:%M:%S')
 
     # Creating handlers
-    log_path = ''.join(log_filepath.split('/')[:-1])
+    log_path = '/'.join(log_filepath.split('/')[:-1])
     if not isdir(log_path):
-        os.mkdir(log_path)
+        makedirs(log_path)
 
     file_handler = logging.FileHandler(log_filepath, mode=filemode, encoding='utf-8')
     stream_handler = logging.StreamHandler()
