@@ -1,4 +1,4 @@
-<h1 align="center">pybox Python Factory</h1>
+<h1 align="center">pycomp Python Factory</h1>
 
 <div align="center">
   :snake::factory::factory::factory::factory::factory::factory::snake:
@@ -9,7 +9,7 @@
 
 <br />
 
-Literalmente, uma fábrica de códigos em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
+Literalmente, uma fábrica de componentes em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
 
 ## Table of Contents
 - [Features](#features)
@@ -46,9 +46,9 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 
 |                            | Funções           | Classes         | Componentes Totais | Homologados  |
 | -------------------------- | :---------------: | :-------------: | :-------------: | :-------------: |
-| File System                |         4         |        0        |        0        |        0        |
-| Logs                       |         1         |        0        |        0        |        0        |
-| Machine Learning           |         0         |        9        |        0        |        0        |
+| File System                |         4         |        0        |        4        |        0        |
+| Logs                       |         1         |        0        |        1        |        0        |
+| Machine Learning           |         0         |        9        |        9        |        0        |
 
 
 ## Utilização
