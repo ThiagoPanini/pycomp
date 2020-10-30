@@ -1,11 +1,3 @@
-[![PyPI](https://img.shields.io/pypi/v/pycomp?color=brightgreen)](https://pypi.org/project/pycomp/)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/pycomp?color=9cf)
-![PyPI - Implementation](https://img.shields.io/pypi/implementation/pycomp?color=blueviolet)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomp?color=green)
-![PyPI - Wheel](https://img.shields.io/pypi/wheel/pycomp?color=yellow)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![PyPI - Status](https://img.shields.io/pypi/status/pycomp)
-
 <h1 align="center">pycomp Python Factory</h1>
 
 <div align="center">
@@ -14,6 +6,17 @@
 <div align="center">
   <strong>Fábrica de componentes Python</strong>
 </div>
+
+<br />
+
+[![PyPI](https://img.shields.io/pypi/v/pycomp?color=brightgreen)](https://pypi.org/project/pycomp/)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/pycomp?color=9cf)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/pycomp?color=blueviolet)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomp?color=green)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/pycomp?color=yellow)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![PyPI - Status](https://img.shields.io/pypi/status/pycomp)
+
 
 <br />
 
