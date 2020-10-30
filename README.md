@@ -8,7 +8,9 @@
 </div>
 
 <br />
+
 <div align="center">
+  
 [![PyPI](https://img.shields.io/pypi/v/pycomp?color=brightgreen)](https://pypi.org/project/pycomp/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pycomp?color=9cf)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/pycomp?color=blueviolet)
@@ -16,8 +18,8 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/pycomp?color=yellow)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![PyPI - Status](https://img.shields.io/pypi/status/pycomp)
-</div>
 
+</div>
 <br />
 
 Literalmente, uma fábrica de componentes em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
