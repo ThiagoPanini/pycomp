@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://imgur.com/oRU4i0M"><img src="https://i.imgur.com/oRU4i0M.png" alt="pycomp Logo"></a>
+  <a href="https://imgur.com/WcAaq1P"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
 </h1>
 
 <div align="center">
