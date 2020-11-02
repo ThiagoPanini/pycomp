@@ -24,9 +24,10 @@ Ref [2.1]: https://stackoverflow.com/questions/1471994/what-is-setup-py
 
 # Bibliotecas
 from setuptools import setup, find_packages
+from pip.req import parse_requirements
 
 # Definindo variáveis de setup
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 __description__ = 'Fábrica de componentes Python'
 
 with open("README.md", "r") as f:
@@ -36,6 +37,10 @@ __long_description_content_type__ = 'text/markdown'
 __author__ = 'Thiago Panini'
 __author_email__ = 'thipanini94@gmail.com'
 
+# Lendo dependências do pacote
+install_reqs = parse_requirements('requirements_pkg.txt')
+reqs = [str(ir.req) for ir in install_reqs]
+
 # Criando setup
 setup(
     name='pycomp',
@@ -43,11 +48,12 @@ setup(
     author=__author__,
     author_email=__author_email__,
     packages=find_packages(),
+    install_requires=reqs,
     description=__description__,
     long_description=__long_description__,
     long_description_content_type=__long_description_content_type__,
     url='https://github.com/ThiagoPanini/pycomp',
-    keywords='Python, Factory, Packages, Modules, Components',
+    keywords='Packages, Components, Machine Learning, AutoML',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
