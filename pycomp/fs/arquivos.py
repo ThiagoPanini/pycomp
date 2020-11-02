@@ -20,7 +20,7 @@ Sumário
 
 # Importando bibliotecas
 import logging
-from pycomp.logs.log_config import *
+from pycomp.log.log_config import *
 import os
 import time
 from os.path import isdir

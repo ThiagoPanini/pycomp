@@ -14,8 +14,9 @@ Sumário
 
 # Importando bibliotecas
 import logging
-from os import makedirs
-from os.path import isdir
+import os
+from os import makedirs, getcwd
+from os.path import isdir, join
 
 
 """
@@ -27,7 +28,7 @@ from os.path import isdir
 
 def log_config(logger, level=logging.DEBUG, 
                log_format='%(levelname)s;%(asctime)s;%(filename)s;%(module)s;%(lineno)d;%(message)s',
-               log_filepath='exec_log/execution_log.log', filemode='a'):
+               log_filepath=os.path.join(os.getcwd(), 'exec_log/execution_log.log'), filemode='a'):
     """
     Função que recebe um objeto logging e aplica configurações básicas ao mesmo
 
