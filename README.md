@@ -1,8 +1,8 @@
-<h1 align="center">pycomp</h1>
+<h1 align="center">
+  <br>
+  <a href="https://imgur.com/oRU4i0M"><img src="https://i.imgur.com/oRU4i0M.png" alt="pycomp Logo"></a>
+</h1>
 
-<div align="center">
-  :snake::factory::factory::factory::factory::factory::factory::snake:
-</div>
 <div align="center">
   <strong>Fábrica de componentes Python</strong>
 </div>
