@@ -26,7 +26,7 @@ Ref [2.1]: https://stackoverflow.com/questions/1471994/what-is-setup-py
 from setuptools import setup, find_packages
 
 # Definindo variáveis de setup
-__version__ = '0.0.4'
+__version__ = '0.0.8'
 __description__ = 'Fábrica de componentes Python'
 
 with open("README.md", "r") as f:

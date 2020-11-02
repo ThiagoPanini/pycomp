@@ -14,6 +14,7 @@ Sumário
 
 # Importando bibliotecas
 import logging
+import os
 from os import makedirs, getcwd
 from os.path import isdir, join
 
