@@ -48,7 +48,7 @@ logger = log_config(logger)
 ---------------------------------------------------
 """
 
-class ColsFormatting(BaseEstimator, TransformerMixin):
+class FormataColunas(BaseEstimator, TransformerMixin):
     """
     Classe responsável por aplicar formatação customizada nas colunas de um DataFrame
     a partir das funções lower(), strip() e replace().
@@ -64,7 +64,7 @@ class ColsFormatting(BaseEstimator, TransformerMixin):
 
     Aplicação
     -----------
-    cols_formatter = ColsFormatting()
+    cols_formatter = FormataColunas()
     df_custom = cols_formatter.fit_transform(df_old)
     """
 
@@ -76,7 +76,7 @@ class ColsFormatting(BaseEstimator, TransformerMixin):
         return df
 
 
-class FeatureSelection(BaseEstimator, TransformerMixin):
+class FiltraColunas(BaseEstimator, TransformerMixin):
     """
     Classe responsável por filtrar as colunas de um DataFrame
     O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
@@ -91,7 +91,7 @@ class FeatureSelection(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    selector = FeatureSelection(features=model_features)
+    selector = FiltraColunas(features=model_features)
     df_filtered = selector.fit_transform(df)
     """
 
@@ -105,7 +105,7 @@ class FeatureSelection(BaseEstimator, TransformerMixin):
         return df[self.features]
 
 
-class TargetDefinition(BaseEstimator, TransformerMixin):
+class DefineTarget(BaseEstimator, TransformerMixin):
     """
     Classe responsável por transformar uma coluna target em uma coluna numérica baseada
     em uma entrada da classe positiva.
@@ -123,7 +123,7 @@ class TargetDefinition(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    target_prep = TargetDefinition(target_col='original_target', pos_class='DETRATOR', new_target_name='target')
+    target_prep = DefineTarget(target_col='original_target', pos_class='DETRATOR', new_target_name='target')
     df = target_prep.fit_transform(df)
     """
 
@@ -152,7 +152,7 @@ class TargetDefinition(BaseEstimator, TransformerMixin):
             return df.drop(self.target_col, axis=1)
 
 
-class DropDuplicates(BaseEstimator, TransformerMixin):
+class EliminaDuplicatas(BaseEstimator, TransformerMixin):
     """
     Classe responsável por dropar duplicatas em um DataFrame.
     O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
@@ -167,7 +167,7 @@ class DropDuplicates(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    dup_dropper = DropDuplicates()
+    dup_dropper = EliminaDuplicatas()
     df_nodup = dup_dropper.fit_transform(df)
     """
 
@@ -178,7 +178,7 @@ class DropDuplicates(BaseEstimator, TransformerMixin):
         return df.drop_duplicates()
 
 
-class SplitData(BaseEstimator, TransformerMixin):
+class SplitDados(BaseEstimator, TransformerMixin):
     """
     Classe responsável por auxiliar a separação de uma base de dados em treino e teste
     a partir da aplicação da função train_test_split() do módulo sklearn.model_selection.
@@ -205,7 +205,7 @@ class SplitData(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    splitter = SplitData(target='target')
+    splitter = SplitDados(target='target')
     X_train, X_test, y_train, y_test = splitter.fit_transform(df)
     """
 
@@ -277,7 +277,7 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
         return X_dum
 
 
-class FillNullData(BaseEstimator, TransformerMixin):
+class PreencheDadosNulos(BaseEstimator, TransformerMixin):
     """
     Classe responsável por preencher dados nulos.
     Esta classe deve ser utilizada em um pipeline de dados numéricos.
@@ -293,7 +293,7 @@ class FillNullData(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    filler = FillNullData(cols_to_fill=['colA', 'colB', 'colC'], value_fill=-999)
+    filler = PreencheDadosNulos(cols_to_fill=['colA', 'colB', 'colC'], value_fill=-999)
     X_filled = filler.fit_transform(X)
     """
 
@@ -313,7 +313,7 @@ class FillNullData(BaseEstimator, TransformerMixin):
             return X.fillna(value=self.value_fill)
 
 
-class DropNullData(BaseEstimator, TransformerMixin):
+class EliminaDadosNulos(BaseEstimator, TransformerMixin):
     """
     Classe responsável por droppar dados nulos a partir do método dropna()
 
@@ -327,7 +327,7 @@ class DropNullData(BaseEstimator, TransformerMixin):
 
     Application
     -----------
-    null_dropper = DropNulldata(cols_dropna=['colA', 'colB', 'colC'])
+    null_dropper = EliminaDadosNulos(cols_dropna=['colA', 'colB', 'colC'])
     X = null_dropper.fit_transform(X)
     """
 
@@ -346,7 +346,7 @@ class DropNullData(BaseEstimator, TransformerMixin):
             return X.dropna()
 
 
-class TopFeatureSelector(BaseEstimator, TransformerMixin):
+class SeletorTopFeatures(BaseEstimator, TransformerMixin):
     """
     Classe responsável por selecionar as top k features mais importantes de um modelo treinado
 
@@ -361,7 +361,7 @@ class TopFeatureSelector(BaseEstimator, TransformerMixin):
 
     Aplicação
     ---------
-    feature_selector = TopFeatureSelector(feature_importance, k=10)
+    feature_selector = SeletorTopFeatures(feature_importance, k=10)
     X_selected = feature_selector.fit_transform(X)
     """
 
