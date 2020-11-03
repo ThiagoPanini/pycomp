@@ -1,5 +1,4 @@
 <h1 align="center">
-  <br>
   <a href="https://imgur.com/WcAaq1P"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
 </h1>
 
@@ -47,11 +46,11 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 
 ## Instalação
 
-A última versão do pacote `pycomp` encontra-se publicada no repositório [PyPI](https://pypi.org/project/pycomp/). Como boa prática, recomenda-se a criação de um _virtual env_ Python para alocar as bibliotecas do projeto a ser desenvolvido:
+A última versão do pacote `pycomp` encontra-se publicada no repositório [PyPI](https://pypi.org/project/pycomp/). Como boa prática, recomenda-se a criação de um *virtual env* Python para alocar as bibliotecas do projeto a ser desenvolvido:
 
 <sub>Substitua os coringas *dir_name* e *venv_name* por referências de livre escolha
 
-``` bash
+```bash
 # Criando diretório para o virtual env
 $ cd $HOME  # ou qualquer outro diretório de preferência
 $ mkdir dir_name/
