@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://imgur.com/WcAaq1P"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
+  <a href="https://pypi.org/project/pycomp/#description"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
 </h1>
 
 <div align="center">
