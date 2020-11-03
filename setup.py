@@ -24,34 +24,33 @@ Ref [2.1]: https://stackoverflow.com/questions/1471994/what-is-setup-py
 
 # Bibliotecas
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+#from pip.req import parse_requirements
 
-# Definindo variáveis de setup
-__version__ = '0.0.10'
-__description__ = 'Fábrica de componentes Python'
-
-with open("README.md", "r") as f:
+# Lendo README.md
+with open("README.md", "r", encoding='utf-8') as f:
     __long_description__ = f.read()
-__long_description_content_type__ = 'text/markdown'
-
-__author__ = 'Thiago Panini'
-__author_email__ = 'thipanini94@gmail.com'
 
 # Lendo dependências do pacote
-install_reqs = parse_requirements('requirements_pkg.txt')
-reqs = [str(ir.req) for ir in install_reqs]
+"""install_reqs = parse_requirements('requirements_pkg.txt', session='hack')
+reqs = [str(ir.req) for ir in install_reqs]"""
 
 # Criando setup
 setup(
     name='pycomp',
-    version=__version__,
-    author=__author__,
-    author_email=__author_email__,
+    version='0.0.10',
+    author='Thiago Panini',
+    author_email='thipanini94@gmail.com',
     packages=find_packages(),
-    install_requires=reqs,
-    description=__description__,
+    install_requires=[
+        'numpy==1.19.3',
+        'pandas==1.1.3',
+        'joblib==0.17.0',
+        'scikit-learn==0.23.2'
+    ],
+    license='MIT',
+    description='Fábrica de componentes Python',
     long_description=__long_description__,
-    long_description_content_type=__long_description_content_type__,
+    long_description_content_type="text/markdown",
     url='https://github.com/ThiagoPanini/pycomp',
     keywords='Packages, Components, Machine Learning, AutoML',
     include_package_data=True,
@@ -69,3 +68,4 @@ setup(
 
 # Hint: publicando Source Archive (tar.gz) e Built Distribution (.whl)
 # python3 setup.py sdist bdist_wheel
+# twine check dist/*

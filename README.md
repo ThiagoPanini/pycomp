@@ -1,9 +1,9 @@
 <h1 align="center">
-  <a href="https://pypi.org/project/pycomp/#description"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
+<a href="https://pypi.org/project/pycomp/#description"><img src="https://i.imgur.com/WcAaq1P.png" alt="pycomp Logo"></a>
 </h1>
 
 <div align="center">
-  <strong>Fábrica de componentes Python</strong>
+<strong>Fábrica de componentes Python</strong>
 </div>
 <br/>
 
@@ -23,12 +23,15 @@ Literalmente, uma fábrica de componentes em Python criada para auxiliar impleme
 ## Features
 <sub>Componentes marcados com * não foram homologadas
 - :file_folder: __fs__: o módulo fs (file system) foi desenvolvido para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização/modificação de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros. Entre os componentes já implementados, é possível listar:
+
   - _arquivos.py*_
   
 - :pencil: __log__: módulo auxiliar responsável por facilitar a geração, configuração e o armazenamento de logs de execução dos demais módulos do pacote.
+
   - _log_config.py*_
   
 - :robot: __ml__: o módulo ml (machine learning) contém os componentes apropriados para a construção e aplicação de Pipelines de pré-processamento de dados, bem como módulos responsáveis por automatizar o treinamento e avaliação de modelos de aprendizado de máquina. Através dos módulos _transformers_ e _trainer_, é possível construir um fluxo inteligente de recebimento, transformação e treinamento de modelos.
+
   - _transformers.py*_
   - _trainer.py*_
   
@@ -43,13 +46,12 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 | Machine Learning           | `pycomp.ml.transformers` |         0         |        9        |        9            |        0        |
 |                            | `pycomp.ml.trainer`      |         7         |        1        |        8            |        0        |
 
-
 ## Instalação
 
 A última versão do pacote `pycomp` encontra-se publicada no repositório [PyPI](https://pypi.org/project/pycomp/). Como boa prática, recomenda-se a criação de um *virtual env* Python para alocar as bibliotecas do projeto a ser desenvolvido:
 
 <sub>Substitua os coringas *dir_name* e *venv_name* por referências de livre escolha
-  
+
 ```bash
 # Criando diretório para o virtual env
 $ cd $HOME  # ou qualquer outro diretório de preferência
