@@ -96,7 +96,7 @@ Installing collected packages: numpy, scipy, joblib, threadpoolctl, scikit-learn
 Successfully installed joblib-0.17.0 numpy-1.19.3 pandas-1.1.3 pycomp-0.0.11 python-dateutil-2.8.1 pytz-2020.4 scikit-learn-0.23.2 scipy-1.5.3 six-1.15.0 threadpoolctl-2.1.0
 ```
 
-> **Nota**: o pacote `pycomp` é construído como uma ferramenta de top level em cima de outros pacotes conhecidos em Python, como sklearn, pandas e numpy. Ao instalar o `pycomp`, as dependências especificadas também serão instaladas automaticamente em seu ambiente virtual de trabalho.
+> **Nota**: o pacote `pycomp` é construído na camada top level de outros pacotes conhecidos em Python, como sklearn, pandas e numpy. Ao instalar o `pycomp`, as dependências especificadas também serão instaladas automaticamente em seu ambiente virtual de trabalho.
 
 
 ## Utilização
