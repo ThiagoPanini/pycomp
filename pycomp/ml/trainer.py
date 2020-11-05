@@ -14,14 +14,19 @@ Sumário
 
 # Importando bibliotecas
 import logging
+import pandas as pd
+import numpy as np
+import os
 import time
 from datetime import datetime
-import os
-import pandas as pd
 from pycomp.log.log_config import log_config
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import cross_val_score, cross_val_predict
-from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, \
+                            f1_score, confusion_matrix, roc_curve
+import itertools
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 """
@@ -82,29 +87,29 @@ class ClassificadorBinario:
 
         if 'save' in kwargs and bool(kwargs['save']):
             # Validando argumento path
-            if 'output_path' not in kwargs:
-                logger.warning('Argumento "output_path" não definido. Especifique o caminho para salvar o arquivo')
+            if 'output_file' not in kwargs:
+                logger.warning('Argumento "output_file" não definido. Especifique o caminho para salvar o arquivo')
                 return 
             else:
-                output_path = kwargs['output_path']
+                output_file = kwargs['output_file']
 
             # Validando overwrite dos resultados
             logger.debug('Salvando arquivo')
             if 'overwrite' in kwargs and bool(kwargs['overwrite']):
                 try:
-                    df.to_csv(output_path, index=False)
-                    logger.info(f'Arquivo salvo em: {output_path}')
+                    df.to_csv(output_file, index=False)
+                    logger.info(f'Arquivo salvo em: {output_file}')
                 except Exception as e:
-                    logger.error(f'Falha ao salvar o arquivo em {output_path}. Exception lançada: {e}')
+                    logger.error(f'Falha ao salvar o arquivo em {output_file}. Exception lançada: {e}')
             elif 'overwrite' in kwargs and not bool(kwargs['overwrite']):
                 try:
-                    df_log = pd.read_csv(output_path)
+                    df_log = pd.read_csv(output_file)
                     df_full = df_log.append(df)
-                    df_full.to_csv(output_path, index=False)
-                    logger.info(f'Arquivo salvo em: {output_path}')
+                    df_full.to_csv(output_file, index=False)
+                    logger.info(f'Arquivo salvo em: {output_file}')
                 except FileNotFoundError:
                     logger.error(f'Erro ao salvar arquivo. Exception lançada: {e}')
-                    df.to_csv(output_path, index=False)
+                    df.to_csv(output_file, index=False)
             elif 'overwrite' not in kwargs:
                 logger.warning('Parâmetro overwrite não contido no dicionário **kwargs. Especifique esse flag booleano para salvar o arquivo')
 
@@ -325,7 +330,7 @@ class ClassificadorBinario:
         :param **kwargs: outros parâmetros da função:
             :arg save: flag booleano para indicar o salvamento do resultado em arquivo csv [type: bool]
             :arg overwrite: flag para indicar a sobrescrita ou append dos resultados [type: bool]
-            :arg output_path: caminho onde o arquivo de resultados será salvo: [type: string]
+            :arg output_file: caminho onde o arquivo de resultados será salvo: [type: string]
         
         Retorno
         ------
@@ -477,8 +482,226 @@ class ClassificadorBinario:
 
         # Avaliando modelos
         self.evaluate_performance(X_train, y_train, X_test, y_test, save=save, overwrite=overwrite, 
-                                  output_path=os.path.join(output_path, 'metrics.csv'))
+                                  output_file=os.path.join(output_path, 'metrics.csv'))
 
         # Analisando Features mais importantes
         self.feature_importance(features, save=save, overwrite=overwrite, 
-                                output_path=os.path.join(output_path, 'top_features.csv'))
+                                output_file=os.path.join(output_path, 'top_features.csv'))
+
+    def custom_confusion_matrix(self, model_name, y_true, y_pred, classes, cmap, normalize=False):
+        """
+        Método utilizada para plotar uma matriz de confusão customizada para um único modelo da classe. Em geral,
+        esse método pode ser chamado por um método de camada superior para plotagem de matrizes para todos os
+        modelos presentes na classe
+
+        Parâmetros
+        ----------
+        :param model_name: chave identificadora do modelo contida no atributo self.classifiers_info [type: string]
+        :param y_true: array contendo a variável target do dataset [type: np.array]
+        :param y_pred: array com as predições retornadas pelo respectivo modelo [type: np.array]
+        :param classes: nomenclatura das classes da matriz [type: list]
+        :param cmap: colormap para a matriz gerada [type: matplotlib.colormap]
+        :param normalize: flag para normalizar as entradas da matriz [type: bool, default=False]
+
+        Retorno
+        -------
+        Este método não retorna nenhuma variável, além da plotagem da matriz especificada
+
+        Aplicação
+        -----------
+        Visualizar o método self.plot_confusion_matrix()
+        """
+
+        # Retornando a matriz de confusão usando função do sklearn
+        conf_mx = confusion_matrix(y_true, y_pred)
+
+        # Plotando matriz
+        plt.imshow(conf_mx, interpolation='nearest', cmap=cmap)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+
+        # Customizando eixos
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+
+        # Customizando entradas
+        fmt = '.2f' if normalize else 'd'
+        thresh = conf_mx.max() / 2.
+        for i, j in itertools.product(range(conf_mx.shape[0]), range(conf_mx.shape[1])):
+            plt.text(j, i, format(conf_mx[i, j]),
+                     horizontalalignment='center',
+                     color='white' if conf_mx[i, j] > thresh else 'black')
+        plt.ylabel('True Label')
+        plt.xlabel('Predicted Label')
+        plt.title(f'{model_name}\nConfusion Matrix', size=12)
+    
+    def plot_confusion_matrix(self, cmap=plt.cm.Blues, normalize=False, 
+                              output_path=os.path.join(os.getcwd(), 'results/')):
+        """
+        Método responsável por plotar gráficos de matriz de confusão usando dados de treino e teste
+        para todos os modelos presentes no dicionárion de classificadores self.classifiers_info
+
+        Parâmetros
+        ----------
+        :param cmap: colormap para a matriz gerada [type: matplotlib.colormap]
+        :param normalize: flag para normalizar as entradas da matriz [type: bool, default=False]
+        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'results'/)]
+        
+        Retorno
+        -------
+        Este método não retorna nenhuma variável, além da plotagem da matriz especificada
+
+        Aplicação
+        ---------
+        trainer = ClassificadorBinario()
+        trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features)
+        trainer.plot_confusion_matrix(output_path=OUTPUT_PATH)
+        """
+
+        # Definindo parâmetros de plotagem
+        logger.debug('Inicializando plotagem da matriz de confusão para os modelos')
+        k = 1
+        nrows = len(self.classifiers_info.keys())
+        fig = plt.figure(figsize=(10, nrows * 4))
+        sns.set(style='white', palette='muted', color_codes=True)
+
+        # Iterando sobre cada classificador da classe
+        for model_name, model_info in self.classifiers_info.items():
+            logger.debug(f'Retornando dados de treino e teste para o modelo {model_name}')
+            try:
+                # Retornando dados para cada modelo
+                X_train = model_info['model_data']['X_train']
+                y_train = model_info['model_data']['y_train']
+                X_test = model_info['model_data']['X_test']
+                y_test = model_info['model_data']['y_test']
+                classes = np.unique(y_train)
+            except Exception as e:
+                logger.error(f'Erro ao retornar dados para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            # Realizando predições em treino (cross validation) e teste
+            logger.debug(f'Realizando predições para os dados de treino e teste ({model_name})')
+            try:
+                train_pred = cross_val_predict(model_info['estimator'], X_train, y_train, cv=5)
+                test_pred = model_info['estimator'].predict(X_test)
+            except Exception as e:
+                logger.error(f'Erro ao realizar predições para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            logger.debug(f'Gerando matriz de confusão para o modelo {model_name}')
+            try:
+                # Plotando matriz utilizando dados de treino
+                plt.subplot(nrows, 2, k)
+                self.custom_confusion_matrix(model_name + ' Train', y_train, train_pred, classes=classes, cmap=cmap,
+                                            normalize=normalize)
+                k += 1
+
+                # Plotando matriz utilizando dados de teste
+                plt.subplot(nrows, 2, k)
+                self.custom_confusion_matrix(model_name + ' Test', y_test, test_pred, classes=classes, cmap=plt.cm.Greens,
+                                            normalize=normalize)
+                k += 1
+                logger.info(f'Matriz de confusão gerada para o modelo {model_name}')
+            except Exception as e:
+                logger.error(f'Erro ao gerar a matriz para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+        # Salvando imagem
+        plt.tight_layout()
+        try:
+            output_file = os.path.join(output_path, 'confusion_matrix.png')
+            plt.savefig(output_file, dpi=300)
+            logger.info(f'Imagem com as matrizes salva com sucesso em {output_file}')
+        except Exception as e:
+            logger.error(f'Erro ao salvar a imagem. Exception lançada: {e}')
+            return
+
+    def plot_roc_curve(self, figsize=(16, 6), output_path=os.path.join(os.getcwd(), 'results/')):
+        """
+        Método responsável por iterar sobre os classificadores presentes na classe e plotar a curva ROC
+        para treino (primeiro eixo) e teste (segundo eixo)
+
+        Parâmetros
+        ----------
+        :param figsize: dimensões da figura de plotagem [type: tuple, default=(16, 6)]
+        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'results'/)]
+
+        Retorno
+        -------
+        Este método não retorna nenhuma variável, além da plotagem da curva ROC especificada
+
+        Aplicação
+        ---------
+        trainer = ClassificadorBinario()
+        trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features)
+        trainer.plot_roc_curve(output_path=OUTPUT_PATH)
+        """
+
+        # Criando figura de plotagem
+        logger.debug('Inicializando plotagem da curva ROC para os modelos')
+        fig, axs = plt.subplots(ncols=2, figsize=figsize)
+
+        # Iterando sobre os classificadores presentes na classe
+        for model_name, model_info in self.classifiers_info.items():
+
+            logger.debug(f'Retornando labels e scores de treino e de teste para o modelo {model_name}')
+            try:
+                # Retornando label de treino e de teste
+                y_train = model_info['model_data']['y_train']
+                y_test = model_info['model_data']['y_test']
+
+                # Retornando scores já calculados no método de avaliação de performance
+                train_scores = model_info['train_scores']
+                test_scores = model_info['test_scores']
+            except Exception as e:
+                logger.error(f'Erro ao retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            logger.debug(f'Calculando FPR, TPR e AUC de treino e teste para o modelo {model_name}')
+            try:
+                # Calculando taxas de falsos positivos e verdadeiros positivos
+                train_fpr, train_tpr, train_thresholds = roc_curve(y_train, train_scores)
+                test_fpr, test_tpr, test_thresholds = roc_curve(y_test, test_scores)
+
+                # Retornando AUC de treino e teste já calculada no método de avaliação de performance
+                train_auc = model_info['train_performance']['auc'].values[0]
+                test_auc = model_info['test_performance']['auc'].values[0]
+            except Exception as e:
+                logger.error(f'Erro ao calcular os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            logger.debug(f'Plotando curva ROC de treino e teste para o modelo {model_name}')
+            try:
+                # Plotando curva ROC (treino)
+                plt.subplot(1, 2, 1)
+                plt.plot(train_fpr, train_tpr, linewidth=2, label=f'{model_name} auc={train_auc}')
+                plt.plot([0, 1], [0, 1], 'k--')
+                plt.axis([-0.02, 1.02, -0.02, 1.02])
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.title(f'ROC Curve - Train Data')
+                plt.legend()
+
+                # Plotando curva ROC (teste)
+                plt.subplot(1, 2, 2)
+                plt.plot(test_fpr, test_tpr, linewidth=2, label=f'{model_name} auc={test_auc}')
+                plt.plot([0, 1], [0, 1], 'k--')
+                plt.axis([-0.02, 1.02, -0.02, 1.02])
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.title(f'ROC Curve - Test Data', size=12)
+                plt.legend()
+            except Exception as e:
+                logger.error(f'Erro ao plotar curva ROC para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+        # Salvando imagem
+        plt.tight_layout()
+        try:
+            output_file = os.path.join(output_path, 'roc_curve.png')
+            plt.savefig(output_file, dpi=300)
+            logger.info(f'Imagem com a curva ROC salva com sucesso em {output_file}')
+        except Exception as e:
+            logger.error(f'Erro ao salvar a imagem. Exception lançada: {e}')
+            return
+    

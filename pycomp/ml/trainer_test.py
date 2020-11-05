@@ -18,6 +18,7 @@ y = raw_data['survived'].values
 
 # Separando em treino e teste
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.20, random_state=42)
+features = list(X_train.columns)
 
 # Preparando classificadores
 tree_clf = DecisionTreeClassifier()
@@ -34,19 +35,18 @@ set_classifiers = {
     }
 }
 
+# Variáveis de execução
+OUTPUT_PATH = 'tests/ml/results'
+
 # Inicializando objeto
 trainer = ClassificadorBinario()
 
-# Treinando modelo
-trainer.fit(set_classifiers, X_train, y_train)
+# Fluxo de treino
+trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH)
 
-# Avaliando modelo
-metrics = trainer.evaluate_performance(X_train, y_train, X_test, y_test, save=True, overwrite=True, path='tests/ml/results/metrics.csv')
-
-# Retornando features mais importantes
-features = list(X_train.columns)
-top_features = trainer.feature_importance(features, save=True, overwrite=True, path='tests/ml/results/top_features.csv')
-
-# -----------------------------------------------
+# Gerando Matriz de Confusão
 print()
-trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path='tests/ml/results')
+trainer.plot_confusion_matrix(output_path=OUTPUT_PATH)
+
+print()
+trainer.plot_roc_curve(output_path=OUTPUT_PATH)

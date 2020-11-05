@@ -37,7 +37,7 @@ reqs = [str(ir.req) for ir in install_reqs]"""
 # Criando setup
 setup(
     name='pycomp',
-    version='0.0.10',
+    version='0.0.11',
     author='Thiago Panini',
     author_email='thipanini94@gmail.com',
     packages=find_packages(),
@@ -69,3 +69,4 @@ setup(
 # Hint: publicando Source Archive (tar.gz) e Built Distribution (.whl)
 # python3 setup.py sdist bdist_wheel
 # twine check dist/*
+# python3 -m twine upload --skip-existing dist/*
