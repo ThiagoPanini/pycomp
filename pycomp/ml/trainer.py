@@ -27,6 +27,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, reca
 import itertools
 import matplotlib.pyplot as plt
 import seaborn as sns
+import shap
 
 
 """
@@ -112,6 +113,47 @@ class ClassificadorBinario:
                     df.to_csv(output_file, index=False)
             elif 'overwrite' not in kwargs:
                 logger.warning('Parâmetro overwrite não contido no dicionário **kwargs. Especifique esse flag booleano para salvar o arquivo')
+
+    def save_fig(self, fig, output_path, img_name, tight_layout=True, dpi=300):
+        """
+        Método responsável por salvar imagens geradas pelo matplotlib/seaborn
+
+        Parâmetros
+        ----------
+        :param fig: figura criada pelo matplotlib para a plotagem gráfica [type: plt.figure]
+        :param output_file: caminho final a ser salvo (+ nome do arquivo em formato png) [type: string]
+        :param tight_layout: flag que define o acerto da imagem [type: bool, default=True]
+        :param dpi: resolução da imagem a ser salva [type: int, default=300]
+
+        Retorno
+        -------
+        Este método não retorna nenhum parâmetro além do salvamento da imagem em diretório especificado
+
+        Aplicação
+        ---------
+        fig, ax = plt.subplots()
+        save_fig(fig, output_file='imagem.png')
+        """
+
+        # Verificando se diretório existe
+        if not os.path.isdir(output_path):
+            logger.warning(f'Diretório {output_path} inexistente. Criando diretório no local especificado')
+            try:
+                os.makedirs(output_path)
+            except Exception as e:
+                logger.error(f'Erro ao tentar criar o diretório {output_path}. Exception lançada: {e}')
+        
+        # Acertando layout da imagem
+        if tight_layout:
+            fig.tight_layout()
+        
+        logger.debug('Salvando imagem no diretório especificado')
+        try:
+            output_file = os.path.join(output_path, img_name)
+            fig.savefig(output_file, dpi=300)
+            logger.info(f'Imagem salva com sucesso em {output_file}')
+        except Exception as e:
+            logger.error(f'Erro ao salvar imagem. Exception lançada: {e}')
 
     def fit(self, set_classifiers, X_train, y_train, **kwargs):
         """
@@ -607,14 +649,7 @@ class ClassificadorBinario:
                 return
 
         # Salvando imagem
-        plt.tight_layout()
-        try:
-            output_file = os.path.join(output_path, 'confusion_matrix.png')
-            plt.savefig(output_file, dpi=300)
-            logger.info(f'Imagem com as matrizes salva com sucesso em {output_file}')
-        except Exception as e:
-            logger.error(f'Erro ao salvar a imagem. Exception lançada: {e}')
-            return
+        self.save_fig(fig, output_path, img_name='confusion_matrix.png')
 
     def plot_roc_curve(self, figsize=(16, 6), output_path=os.path.join(os.getcwd(), 'results/')):
         """
@@ -696,12 +731,231 @@ class ClassificadorBinario:
                 return
 
         # Salvando imagem
-        plt.tight_layout()
-        try:
-            output_file = os.path.join(output_path, 'roc_curve.png')
-            plt.savefig(output_file, dpi=300)
-            logger.info(f'Imagem com a curva ROC salva com sucesso em {output_file}')
-        except Exception as e:
-            logger.error(f'Erro ao salvar a imagem. Exception lançada: {e}')
-            return
+        self.save_fig(fig, output_path, img_name='roc_curve.png')
     
+    def plot_score_distribution(self, shade=True, output_path=os.path.join(os.getcwd(), 'results/')):
+        """
+        Método responsável por plotar gráficos de distribuição de score (kdeplot) para os
+        dados de treino e teste separados pela classe target
+        
+        Parâmetros
+        ----------
+        :param shade: flag indicativo de preenchimento da área sob a curva [type: bool, default=True]
+        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'results'/)]
+
+        Retorno
+        -------
+        Este método não retorna nenhum parâmetro além do salvamento do gráfico de distribuição especificado
+        
+        Aplicação
+        ---------
+        trainer = ClassificadorBinario()
+        trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features)
+        trainer.plot_score_distribution(output_path=OUTPUT_PATH)
+        """
+
+        # Criando figura de plotagem
+        logger.debug('Inicializando plotagem da distribuição de score para os modelos')
+        i = 0
+        nrows = len(self.classifiers_info.keys())
+        fig, axs = plt.subplots(nrows=nrows, ncols=2, figsize=(16, nrows * 4))
+        sns.set(style='white', palette='muted', color_codes=True)
+
+        # Iterando sobre os classificadores presentes na classe
+        for model_name, model_info in self.classifiers_info.items():
+
+            logger.debug(f'Retornando labels e scores de treino e de teste para o modelo {model_name}')
+            try:
+                # Retornando label de treino e de teste
+                y_train = model_info['model_data']['y_train']
+                y_test = model_info['model_data']['y_test']
+
+                # Retornando scores já calculados no método de avaliação de performance
+                train_scores = model_info['train_scores']
+                test_scores = model_info['test_scores']
+            except Exception as e:
+                logger.error(f'Erro ao retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            logger.debug(f'Plotando distribuição de score de treino e teste para o modelo {model_name}')
+            try:
+                # Distribuição de score pros dados de treino
+                sns.kdeplot(train_scores[y_train == 1], ax=axs[i, 0], label='y=1', shade=shade, color='crimson')
+                sns.kdeplot(train_scores[y_train == 0], ax=axs[i, 0], label='y=0', shade=shade, color='darkslateblue')
+                axs[i, 0].set_title(f'Distribuição de Score - {model_name} - Treino')
+                axs[i, 0].legend()
+
+                # Distribuição de score pros dados de teste
+                sns.kdeplot(test_scores[y_test == 1], ax=axs[i, 1], label='y=1', shade=shade, color='crimson')
+                sns.kdeplot(test_scores[y_test == 0], ax=axs[i, 1], label='y=0', shade=shade, color='darkslateblue')
+                axs[i, 1].set_title(f'Distribuição de Score - {model_name} - Teste')
+                axs[i, 1].legend()
+                i += 1
+            except Exception as e:
+                logger.error(f'Erro ao plotar a curva para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+        # Salvando imagem
+        self.save_fig(fig, output_path, img_name='score_distribution.png')
+
+    def plot_score_bins(self, bin_range=.25, output_path=os.path.join(os.getcwd(), 'results/')):
+        """
+        Método responsável por realizar a plotagem da distribuição de scores em faixas específicas
+
+        Parâmetros
+        ----------
+        :param bin_range: intervalo de separação das faixas de score [type: float, default=.25]
+        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'results'/)]
+
+        Retorno
+        -------
+        Este método não retorna nenhum parâmetro além do salvamento do gráfico de distribuição especificado
+        
+        Aplicação
+        ---------
+        trainer = ClassificadorBinario()
+        trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features)
+        trainer.plot_score_distribution(output_path=OUTPUT_PATH)
+        """
+
+        logger.debug('Inicializando plotagem de distribuição de score em faixas para os modelos')
+        i = 0
+        nrows = len(self.classifiers_info.keys())
+        fig1, axs1 = plt.subplots(nrows=nrows, ncols=2, figsize=(16, nrows * 4))
+        fig2, axs2 = plt.subplots(nrows=nrows, ncols=2, figsize=(16, nrows * 4))
+
+        # Retornando parâmetros de faixas
+        bins = np.arange(0, 1.01, bin_range)
+        bins_labels = [str(round(list(bins)[i - 1], 2)) + ' a ' + str(round(list(bins)[i], 2)) for i in range(len(bins)) if i > 0]
+
+        # Iterando sobre os classificadores da classe
+        for model_name, model_info in self.classifiers_info.items():
+
+            logger.debug(f'Calculando parâmetros de plotagem para o modelo {model_name}')
+            try:
+                # Retrieving the train scores and creating a DataFrame
+                train_scores = model_info['train_scores']
+                y_train = model_info['model_data']['y_train']
+                df_train_scores = pd.DataFrame({})
+                df_train_scores['scores'] = train_scores
+                df_train_scores['target'] = y_train
+                df_train_scores['faixa'] = pd.cut(train_scores, bins, labels=bins_labels)
+
+                # Computing the distribution for each bin
+                df_train_rate = pd.crosstab(df_train_scores['faixa'], df_train_scores['target'])
+                df_train_percent = df_train_rate.div(df_train_rate.sum(1).astype(float), axis=0)
+
+                # Retrieving the test scores and creating a DataFrame
+                test_scores = model_info['test_scores']
+                y_test = model_info['model_data']['y_test']
+                df_test_scores = pd.DataFrame({})
+                df_test_scores['scores'] = test_scores
+                df_test_scores['target'] = y_test
+                df_test_scores['faixa'] = pd.cut(test_scores, bins, labels=bins_labels)
+
+                # Computing the distribution for each bin
+                df_test_rate = pd.crosstab(df_test_scores['faixa'], df_test_scores['target'])
+                df_test_percent = df_test_rate.div(df_test_rate.sum(1).astype(float), axis=0)
+            except Exception as e:
+                logger.error(f'Erro ao calcular parâmetros para o modelo {model_name}. Exception lançada: {e}')
+                return
+
+            logger.debug(f'Plotando distribuição do score em faixas para o modelo {model_name}')
+            try:
+                sns.countplot(x='faixa', data=df_train_scores, ax=axs1[i, 0], hue='target', palette=['darkslateblue', 'crimson'])
+                sns.countplot(x='faixa', data=df_test_scores, ax=axs1[i, 1], hue='target', palette=['darkslateblue', 'crimson'])
+
+                # Formatando legendas e títulos
+                axs1[i, 0].legend(loc='upper right')
+                axs1[i, 1].legend(loc='upper right')
+                axs1[i, 0].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Treino')
+                axs1[i, 1].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Teste')
+                #AnnotateBars(n_dec=0, color='dimgrey').vertical(axs1[i, 0])
+                #AnnotateBars(n_dec=0, color='dimgrey').vertical(axs1[i, 1])
+
+                """for df_scores, ax in zip([df_train_scores, df_test_scores], [axs[0, 0], axs[0, 1]]):
+                    sns.countplot(x='faixa', data=df_scores, hue='target', ax=ax, palette=['darkslateblue', 'crimson'])
+                    #AnnotateBars(n_dec=0, color='dimgrey').vertical(ax)
+                    ax.legend(loc='upper right')
+                    #format_spines(ax, right_border=False)"""
+
+                logger.debug(f'Plotando percentual de volumetria da faixa para o modelo {model_name}')
+                for df_percent, ax in zip([df_train_percent, df_test_percent], [axs2[i, 0], axs2[i, 1]]):
+                    df_percent.plot(kind='bar', ax=ax, stacked=True, color=['darkslateblue', 'crimson'], width=0.6)
+
+                    for p in ax.patches:
+                        # Coletando parâmetros para inserção de rótulos
+                        height = p.get_height()
+                        width = p.get_width()
+                        x = p.get_x()
+                        y = p.get_y()
+
+                        # Formatando parâmetros
+                        label_text = f'{round(100 * height, 1)}%'
+                        label_x = x + width - 0.30
+                        label_y = y + height / 2
+                        ax.text(label_x, label_y, label_text, ha='center', va='center', color='white',
+                                fontweight='bold', size=10)
+                    #format_spines(ax, right_border=False)
+
+                    # Formatando legendas e títulos
+                    axs2[i, 0].set_title(f'Distribuição do Score em Faixas (Percentual) - {model_name} - Treino')
+                    axs2[i, 1].set_title(f'Distribuição do Score em Faixas (Percentual) - {model_name} - Teste')
+                i += 1
+
+                # Final definitions
+                """axs[0, 0].set_title('Quantity of each Class by Range - Train', size=12, color='dimgrey')
+                axs[0, 1].set_title('Quantity of each Class by Range - Test', size=12, color='dimgrey')
+                axs[1, 0].set_title('Percentage of each Class by Range - Train', size=12, color='dimgrey')
+                axs[1, 1].set_title('Percentage of each Class by Range - Test', size=12, color='dimgrey')
+                plt.suptitle(f'Score Distribution by Range - {model_name}\n', size=14, color='black')"""
+            except Exception as e:
+                logger.error(f'Erro ao plotar gráfico para o modelo {model_name}. Exception lançada: {e}')
+                return
+            
+        # Salvando imagens
+        self.save_fig(fig1, output_path, img_name='score_bins.png')
+        self.save_fig(fig2, output_path, img_name='score_bins_percent.png')
+        
+    def shap_analysis(self, model_name, features):
+        """
+        Método responsável por plotar a análise shap pras features em um determinado modelo
+        
+        Parâmetros
+        ----------
+        :param model_name: chave de um classificador específico já treinado na classe [type: string]
+        :param features: lista de features do dataset [type: list]
+
+        Retorno
+        -------
+        Este método não retorna nenhum parâmetro além da análise shap especificada
+        """
+
+        logger.debug(f'Retornando o modelo especificado ({model_name})')
+        try:
+            model = self.classifiers_info[model_name]
+        except Exception as e:
+            logger.error(f'Classificador {model_name} não existente ou não treinado. Opções possíveis: {list(self.classifiers_info.keys())}')
+            return
+
+        logger.debug(f'Retornando explainer e shap_values para o modelo {model_name}')
+        try:
+            # Retornando dados de treino
+            X_train = model['model_data']['X_train']
+
+            # Aplicando shap
+            try:
+                explainer = shap.TreeExplainer(model)
+            except:
+                explainer = shap.LinearExplainer(model)
+            df_train = pd.DataFrame(X_train, columns=features)
+            shap_values = explainer.shap_values(df_train)
+        except Exception as e:
+            logger.error(f'Erro ao retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+            return
+
+        logger.debug(f'Plotando análise shap para o modelo {model_name}')
+        try:
+            shap.summary_plot(shap_values[1], df_train)
+        except Exception as e:
+            logger.error(f'Erro ao plotar análise shap para o modelo {model_name}. Exception lançada: {e}')
