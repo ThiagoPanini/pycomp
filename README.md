@@ -206,7 +206,7 @@ results/training_results/
 ## Próximos Passos
 - [x] Inserir função para plotagem de matriz de confusão (`trainer.py`)
 - [x] Inserir função para plotagem de curva ROC (`trainer.py`)
-- [ ] Inserir função para plotagem de curva de distribuição de scores (`trainer.py`)
+- [x] Inserir função para plotagem de curva de distribuição de scores (`trainer.py`)
 - [ ] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
 - [ ] Inserir função para análise shap dos modelos treinados (`trainer.py`)
 - [ ] Consolidar função `graphic_evaluation()` para gerar todas as análises acima (`trainer.py`)
