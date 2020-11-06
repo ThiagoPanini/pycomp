@@ -20,7 +20,7 @@
 
 Literalmente, uma fábrica de componentes em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse repositório é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
 
-## Features / Módulos
+## Features
 <sub>Componentes marcados com * não foram homologadas
 - :file_folder: __fs__: o módulo fs (file system) foi desenvolvido para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização/modificação de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros. Entre os componentes já implementados, é possível listar:
   - _arquivos.py*_
@@ -46,7 +46,9 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 
 ## Instalação
 
-A última versão do pacote `pycomp` encontra-se publicada no repositório [PyPI](https://pypi.org/project/pycomp/). Como boa prática, recomenda-se a criação de um ambiente virual env Python para alocar as bibliotecas do projeto a ser desenvolvido. Caso não tenha um virtual env criado, o bloco de código abaixo pode ser utilizado para a criação de ambiente virtual em um diretório específico: 
+A última versão do pacote `pycomp` encontra-se publicada no repositório [PyPI](https://pypi.org/project/pycomp/). 
+
+> **Nota**: Como boa prática, recomenda-se a criação de um ambiente virual env Python para alocar as bibliotecas do projeto a ser desenvolvido. Caso não tenha um virtual env criado, o bloco de código abaixo pode ser utilizado para a criação de ambiente virtual em um diretório específico: 
 ```bash
 # Criando diretório para o virtual env
 $ cd $HOME  # ou qualquer outro diretório de preferência
@@ -57,6 +59,7 @@ $ cd dir_name/
 $ python3 -m venv venv_name
 ```
 
+
 Utilizando uma ferramenta de desenvolvimento (IDE ou a própria linha de comando), ative o ambiente virtual de trabalho:
 ```bash
 $ source dir_name/venv_name/bin/activate
@@ -66,41 +69,21 @@ Após a ativação, é possível instalar o pacote `pycomp` via pip:
 ```bash
 # Atualizando pip e instalando pycomp
 $ python3 -m pip install --user --upgrade pip
-$ pip install pycomp --upgrade
+$ pip install --upgrade pycomp
 ```
 
-Output esperado:
+> **Nota**: o pacote `pycomp` é construído como uma ferramenta de top level em cima de outros pacotes conhecidos em Python, como sklearn, pandas e numpy. Ao instalar o `pycomp`, as dependências especificadas também serão instaladas automaticamente em seu ambiente virtual de trabalho.
+
+Resumo do output esperado no cmd após a instalação do pacote::
 ```
 Collecting pycomp
-  Downloading https://files.pythonhosted.org/packages/36/a2/84a5c31da4041579285d0b959658db297c05bbcd5e4e5c6a29434b011c41/pycomp-0.0.11-py3-none-any.whl
-Collecting numpy==1.19.3 (from pycomp)
-  Using cached https://files.pythonhosted.org/packages/65/b3/07864c89acb2a86df6f2e8c9bf091ec5916da58dd3ce3a633a51a02c115e/numpy-1.19.3-cp37-cp37m-manylinux2010_x86_64.whl
-Collecting scikit-learn==0.23.2 (from pycomp)
-  Using cached https://files.pythonhosted.org/packages/f4/cb/64623369f348e9bfb29ff898a57ac7c91ed4921f228e9726546614d63ccb/scikit_learn-0.23.2-cp37-cp37m-manylinux1_x86_64.whl
-Collecting pandas==1.1.3 (from pycomp)
-  Using cached https://files.pythonhosted.org/packages/25/47/22fc373440e144e2111363adaa07abb09ec1f03fbc071b6d9fc0bbf65f68/pandas-1.1.3-cp37-cp37m-manylinux1_x86_64.whl
-Collecting joblib==0.17.0 (from pycomp)
-  Using cached https://files.pythonhosted.org/packages/fc/c9/f58220ac44a1592f79a343caba12f6837f9e0c04c196176a3d66338e1ea8/joblib-0.17.0-py3-none-any.whl
-Collecting scipy>=0.19.1 (from scikit-learn==0.23.2->pycomp)
-  Using cached https://files.pythonhosted.org/packages/fa/cf/94686c3e2b21cba82904a2bbb014f7529d483021802a0116c3a256b00563/scipy-1.5.3-cp37-cp37m-manylinux1_x86_64.whl
-Collecting threadpoolctl>=2.0.0 (from scikit-learn==0.23.2->pycomp)
-  Using cached https://files.pythonhosted.org/packages/f7/12/ec3f2e203afa394a149911729357aa48affc59c20e2c1c8297a60f33f133/threadpoolctl-2.1.0-py3-none-any.whl
-Collecting python-dateutil>=2.7.3 (from pandas==1.1.3->pycomp)
-  Using cached https://files.pythonhosted.org/packages/d4/70/d60450c3dd48ef87586924207ae8907090de0b306af2bce5d134d78615cb/python_dateutil-2.8.1-py2.py3-none-any.whl
-Collecting pytz>=2017.2 (from pandas==1.1.3->pycomp)
-  Downloading https://files.pythonhosted.org/packages/12/f8/ff09af6ff61a3efaad5f61ba5facdf17e7722c4393f7d8a66674d2dbd29f/pytz-2020.4-py2.py3-none-any.whl (509kB)
-     |████████████████████████████████| 512kB 1.7MB/s 
-Collecting six>=1.5 (from python-dateutil>=2.7.3->pandas==1.1.3->pycomp)
-  Using cached https://files.pythonhosted.org/packages/ee/ff/48bde5c0f013094d729fe4b0316ba2a24774b3ff1c52d924a8a4cb04078a/six-1.15.0-py2.py3-none-any.whl
-Installing collected packages: numpy, scipy, joblib, threadpoolctl, scikit-learn, six, python-dateutil, pytz, pandas, pycomp
-Successfully installed joblib-0.17.0 numpy-1.19.3 pandas-1.1.3 pycomp-0.0.11 python-dateutil-2.8.1 pytz-2020.4 scikit-learn-0.23.2 scipy-1.5.3 six-1.15.0 threadpoolctl-2.1.0
+[...]
+Installing collected packages: numpy, scipy, pillow, six, cycler, certifi, python-dateutil, pyparsing, kiwisolver, matplotlib, pytz, pandas, seaborn, joblib, threadpoolctl, scikit-learn, pycomp
+Successfully installed certifi-2020.6.20 cycler-0.10.0 joblib-0.17.0 kiwisolver-1.3.1 matplotlib-3.3.2 numpy-1.19.3 pandas-1.1.3 pillow-8.0.1 pycomp-0.0.12 pyparsing-2.4.7 python-dateutil-2.8.1 pytz-2020.4 scikit-learn-0.23.2 scipy-1.5.4 seaborn-0.11.0 six-1.15.0 threadpoolctl-2.1.0
 ```
 
-> **Nota**: o pacote `pycomp` é construído na camada top level de outros pacotes conhecidos em Python, como sklearn, pandas e numpy. Ao instalar o `pycomp`, as dependências especificadas também serão instaladas automaticamente em seu ambiente virtual de trabalho.
-
-
 ## Utilização
-Abaixo, será descrito um exemplo de utilização dos módulos `ml.transformers` e `ml.trainer` do pacote `pycomp` através da leitura, preparação e treinamento de um modelo de classificação utilizando o dataset [Titanic](https://www.kaggle.com/c/titanic)
+Para demonstrar uma poderosa aplicação do pacote `pycomp`, será exemplificado abaixo um trecho de código responsável por consolidar um Pipeline completo de preparação de dados, treinamento e avaliação de diferentes modelos de classificação frente a uma determinada task. Como base de dados, será utilizado o dataset [Titanic](https://www.kaggle.com/c/titanic) em um formato único (união dos arquivos `train.csv` e `test.csv`). Em termos de ferramental, serão aplicadas funções e métodos referentes aos módulos `pycomp.ml.transformers` e `pycomp.ml.trainer`.
 
 ```python
 # Importando bibliotecas
@@ -110,9 +93,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
-from pycomp.ml.transformers import FormataColunas, FiltraColunas, DefineTarget, \
-    EliminaDuplicatas, PreencheDadosNulos, SplitDados
-from pycomp.ml.trainer import ClassificadorBinario
+from pycomp.ml.transformers import FormataColunas, FiltraColunas, DefineTarget, EliminaDuplicatas, PreencheDadosNulos, SplitDados
 from pycomp.ml.trainer import ClassificadorBinario
 
 # Lendo base de dados (titanic data - train + test)
@@ -131,6 +112,7 @@ first_layer_pipe = Pipeline([
 
 # Executando pipeline
 X_train, X_test, y_train, y_test = first_layer_pipe.fit_transform(df)
+features = list(X_train.columns)
 
 # Preparando classificadores
 tree_clf = DecisionTreeClassifier()
@@ -147,47 +129,85 @@ set_classifiers = {
     }
 }
 
+# Definindo variáveis de execução
+OUTPUT_PATH = 'results/training_results'
+
 # Inicializando objeto
 trainer = ClassificadorBinario()
 
 # Treinando e avaliando modelos de classificação
-features = list(X_train.columns)
-trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path='results')
+trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH)
+
+# Gerando gráficos de matriz de confusão para os classificadores
+trainer.plot_confusion_matrix(output_path=OUTPUT_PATH)
+
+# Gerando gráficos de curva ROC para os classificadores
+trainer.plot_roc_curve(output_path=OUTPUT_PATH)
 ```
 
-Output esperado do trecho de código acima no prompt:
+Ao utilizar as ferramentas disponibilizadas no módulo `ml` do pacote `pycomp`, o usuário consegue facilmente construir e executar um Pipeline de preparação de dados enxuto e otimizado a partir das classes pré definidas no módulo `transformers`. Em complemento a essa feature, o módulo `trainer` traz consigo a classe `ClassificadorBinario` com o objetivo de facilitar o treinamento e avaliação de classificadores binários. O usuário final necessita apenas fornecer uma base de dados como de input, os _estimators_ (modelos a serem treinados) e seus respectivos hyperparâmetros de busca a serem utilizados no processo. Detalhando um pouco mais os métodos utilizados no exemplo, tem-se:
+- `training_flow()`: treinamento e avaliação (treino e teste) de todos os classificadores passados como argumento da classe;
+- `plot_confusion_matrix()`: geração e salvamento de matriz de confusão (treino e teste) para os classificadores analisados;
+- `plot_roc_curve()`: geração e salvamento de imagem para curvas ROC (treino e teste) dos classificadores analisados.
+
+### Outputs
+Como feature adicional do `pycomp`, um objeto logger da biblioteca `logging` é instanciado automaticamente e utilizado nas definições do pacote, gerando assim um arquivo `exec_log/execution_log.log` no mesmo diretório de execução do script com os detalhes de cada passo dado nas funções e métodos aplicados. É esperado que o exemplo descrito acima gere a seguinte saída no cmd do OS ou a IDE:
 ```
-DEBUG;2020-11-02 02:11:40;trainer.py;trainer;157;Treinando modelo DecisionTree
-INFO;2020-11-02 02:11:40;trainer.py;trainer;177;Modelo DecisionTree treinado com sucesso
-DEBUG;2020-11-02 02:11:40;trainer.py;trainer;157;Treinando modelo LogisticRegression
-INFO;2020-11-02 02:11:41;trainer.py;trainer;177;Modelo LogisticRegression treinado com sucesso
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;212;Computando métricas do modelo DecisionTree utilizando validação cruzada com 5 K-folds
-INFO;2020-11-02 02:11:41;trainer.py;trainer;244;Métricas computadas com sucesso nos dados de treino em 0.167 segundos
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;277;Computando métricas do modelo DecisionTree utilizando dados de teste
-INFO;2020-11-02 02:11:41;trainer.py;trainer;306;Métricas computadas com sucesso nos dados de teste em 0.005 segundos
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;212;Computando métricas do modelo LogisticRegression utilizando validação cruzada com 5 K-folds
-INFO;2020-11-02 02:11:41;trainer.py;trainer;244;Métricas computadas com sucesso nos dados de treino em 0.389 segundos
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;277;Computando métricas do modelo LogisticRegression utilizando dados de teste
-INFO;2020-11-02 02:11:41;trainer.py;trainer;306;Métricas computadas com sucesso nos dados de teste em 0.006 segundos
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;92;Salvando arquivo
-INFO;2020-11-02 02:11:41;trainer.py;trainer;96;Arquivo salvo em: results/metrics.csv
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;411;Extraindo importância das features para o modelo DecisionTree
-INFO;2020-11-02 02:11:41;trainer.py;trainer;429;Extração da importância das features concluída com sucesso para o modelo DecisionTree
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;411;Extraindo importância das features para o modelo LogisticRegression
-WARNING;2020-11-02 02:11:41;trainer.py;trainer;415;Modelo LogisticRegression não possui o método feature_importances_
-DEBUG;2020-11-02 02:11:41;trainer.py;trainer;92;Salvando arquivo
-INFO;2020-11-02 02:11:41;trainer.py;trainer;96;Arquivo salvo em: results/top_features.csv
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;162;Treinando modelo DecisionTree
+INFO;2020-11-05 00:07:14;trainer.py;trainer;182;Modelo DecisionTree treinado com sucesso
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;162;Treinando modelo LogisticRegression
+INFO;2020-11-05 00:07:14;trainer.py;trainer;182;Modelo LogisticRegression treinado com sucesso
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;217;Computando métricas do modelo DecisionTree utilizando validação cruzada com 5 K-folds
+INFO;2020-11-05 00:07:14;trainer.py;trainer;249;Métricas computadas com sucesso nos dados de treino em 0.142 segundos
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;282;Computando métricas do modelo DecisionTree utilizando dados de teste
+INFO;2020-11-05 00:07:14;trainer.py;trainer;311;Métricas computadas com sucesso nos dados de teste em 0.008 segundos
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;217;Computando métricas do modelo LogisticRegression utilizando validação cruzada com 5 K-folds
+INFO;2020-11-05 00:07:14;trainer.py;trainer;249;Métricas computadas com sucesso nos dados de treino em 0.341 segundos
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;282;Computando métricas do modelo LogisticRegression utilizando dados de teste
+INFO;2020-11-05 00:07:14;trainer.py;trainer;311;Métricas computadas com sucesso nos dados de teste em 0.007 segundos
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;97;Salvando arquivo
+INFO;2020-11-05 00:07:14;trainer.py;trainer;101;Arquivo salvo em: results/training_results/metrics.csv
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;416;Extraindo importância das features para o modelo DecisionTree
+INFO;2020-11-05 00:07:14;trainer.py;trainer;434;Extração da importância das features concluída com sucesso para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;416;Extraindo importância das features para o modelo LogisticRegression
+WARNING;2020-11-05 00:07:14;trainer.py;trainer;420;Modelo LogisticRegression não possui o método feature_importances_
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;97;Salvando arquivo
+INFO;2020-11-05 00:07:14;trainer.py;trainer;101;Arquivo salvo em: results/training_results/top_features.csv
+DEBUG;2020-11-05 00:07:14;trainer.py;trainer;562;Inicializando plotagem da matriz de confusão para os modelos
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;570;Retornando dados de treino e teste para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;583;Realizando predições para os dados de treino e teste (DecisionTree)
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;591;Gerando matriz de confusão para o modelo DecisionTree
+INFO;2020-11-05 00:07:15;trainer.py;trainer;604;Matriz de confusão gerada para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;570;Retornando dados de treino e teste para o modelo LogisticRegression
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;583;Realizando predições para os dados de treino e teste (LogisticRegression)
+DEBUG;2020-11-05 00:07:15;trainer.py;trainer;591;Gerando matriz de confusão para o modelo LogisticRegression
+INFO;2020-11-05 00:07:15;trainer.py;trainer;604;Matriz de confusão gerada para o modelo LogisticRegression
+INFO;2020-11-05 00:07:16;trainer.py;trainer;614;Imagem com as matrizes salva com sucesso em results/training_results/confusion_matrix.png
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;641;Inicializando plotagem da curva ROC para os modelos
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;647;Retornando labels e scores de treino e de teste para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;660;Calculando FPR, TPR e AUC de treino e teste para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;673;Plotando curva ROC de treino e teste para o modelo DecisionTree
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;647;Retornando labels e scores de treino e de teste para o modelo LogisticRegression
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;660;Calculando FPR, TPR e AUC de treino e teste para o modelo LogisticRegression
+DEBUG;2020-11-05 00:07:16;trainer.py;trainer;673;Plotando curva ROC de treino e teste para o modelo LogisticRegression
+INFO;2020-11-05 00:07:17;trainer.py;trainer;703;Imagem com a curva ROC salva com sucesso em results/training_results/roc_curve.png
 ```
 
-Como feature bônus, o `pycomp` permite aos usuários o armazenamento automático de logs de execução das funções, proporcionando uma análise mais detalhada dos passos tomados. Na prática, o código utilizado no exemplo cria dois novos diretórios no mesmo diretório de localização do script:
-  - `exec_log/` contendo o arquivo `execution_log.log` com o log de execução do treinamento dos modelos;
-  - `results/` contendo os arquivos `metrics.csv` (resultado das métricas dos modelos) e `top_features.csv` (análise de feature importance dos modelos). Ambos são definidos no código-exemplo.
+Ao definir um diretório de saída, a execução dos métodos irá gerar arquivos úteis para uma definitiva avaliação do melhor classificador para a respectiva tarefa. No exemplo acima, ao definir a variável `OUTPUT_PATH` como `'results/training_results'`, tem-se o seguinte resultado:
+```bash
+$ tree results/training_results/
+results/training_results/
+├── confusion_matrix.png
+├── metrics.csv
+├── roc_curve.png
+└── top_features.csv
+```
 
 ## Próximos Passos
-- [ ] Inserir função para plotagem de curva ROC (`trainer.py`)
-- [ ] Inserir função para plotagem de matriz de confusão (`trainer.py`)
-- [ ] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
+- [x] Inserir função para plotagem de matriz de confusão (`trainer.py`)
+- [x] Inserir função para plotagem de curva ROC (`trainer.py`)
 - [ ] Inserir função para plotagem de curva de distribuição de scores (`trainer.py`)
+- [ ] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
 - [ ] Inserir função para análise shap dos modelos treinados (`trainer.py`)
 - [ ] Consolidar função `graphic_evaluation()` para gerar todas as análises acima (`trainer.py`)
 - [ ] Brainstorming para pipelines automáticos de prep + treino (`transformers.py + trainer.py`)
