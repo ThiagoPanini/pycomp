@@ -5,6 +5,7 @@ from trainer import ClassificadorBinario
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from warnings import filterwarnings
 filterwarnings('ignore')
@@ -25,6 +26,7 @@ features = list(X_train.columns)
 # Preparando classificadores
 tree_clf = DecisionTreeClassifier()
 log_reg = LogisticRegression()
+forest_clf = RandomForestClassifier()
 
 set_classifiers = {
     'DecisionTree': {
@@ -34,35 +36,28 @@ set_classifiers = {
     'LogisticRegression': {
         'model': log_reg,
         'params': None
+    },
+    'RandomForest': {
+        'model': forest_clf,
+        'params': None
     }
 }
 
 # Variáveis de execução
-OUTPUT_FILES = 'tests/ml/results/files'
-OUTPUT_IMGS = 'tests/ml/results/imgs'
+OUTPUT_PATH = 'tests/ml/output'
 
 # Inicializando objeto
 trainer = ClassificadorBinario()
 
 # Fluxo de treino
-trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_FILES)
+trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH)
 
-# Gerando Matriz de Confusão
+# Análise gŕafica
 print()
-trainer.plot_confusion_matrix(output_path=OUTPUT_IMGS)
+trainer.visual_analysis(features=features, output_path=OUTPUT_PATH)
 
-# Plotando curva ROC
-print()
-trainer.plot_roc_curve(output_path=OUTPUT_IMGS)
 
-# Plotando gráfico de distribuição de score
-print()
-trainer.plot_score_distribution(output_path=OUTPUT_IMGS)
-
-# Plotando gráfico de distribuição de score
-print()
-trainer.plot_score_bins(output_path=OUTPUT_IMGS)
-
-# Plotando análise shap
-print()
-trainer.shap_analysis(model_name='LogisticRegression', features=features)
+"""
+Ideias: salvar o .pkl dos modelos (nova pasta chamada models com os .pkl)
+Modificar gráficos pra sempre plotar visões pra todos os modelos presentes na classe
+"""
