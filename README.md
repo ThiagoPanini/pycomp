@@ -78,12 +78,14 @@ Resumo do output esperado no cmd após a instalação do pacote::
 ```
 Collecting pycomp
 [...]
-Installing collected packages: numpy, scipy, pillow, six, cycler, certifi, python-dateutil, pyparsing, kiwisolver, matplotlib, pytz, pandas, seaborn, joblib, threadpoolctl, scikit-learn, pycomp
-Successfully installed certifi-2020.6.20 cycler-0.10.0 joblib-0.17.0 kiwisolver-1.3.1 matplotlib-3.3.2 numpy-1.19.3 pandas-1.1.3 pillow-8.0.1 pycomp-0.0.12 pyparsing-2.4.7 python-dateutil-2.8.1 pytz-2020.4 scikit-learn-0.23.2 scipy-1.5.4 seaborn-0.11.0 six-1.15.0 threadpoolctl-2.1.0
+Installing collected packages: pyparsing, kiwisolver, certifi, six, python-dateutil, numpy, pillow, cycler, matplotlib, threadpoolctl, scipy, joblib, scikit-learn, pytz, pandas, seaborn, tqdm, slicer, llvmlite, numba, shap, pycomp
+  Running setup.py install for numba ... done
+  Running setup.py install for shap ... done
+Successfully installed certifi-2020.6.20 cycler-0.10.0 joblib-0.17.0 kiwisolver-1.3.1 llvmlite-0.34.0 matplotlib-3.3.2 numba-0.51.2 numpy-1.19.3 pandas-1.1.3 pillow-8.0.1 pycomp-0.0.13 pyparsing-2.4.7 python-dateutil-2.8.1 pytz-2020.4 scikit-learn-0.23.2 scipy-1.5.4 seaborn-0.11.0 shap-0.37.0 six-1.15.0 slicer-0.0.3 threadpoolctl-2.1.0 tqdm-4.51.0
 ```
 
 ## Utilização
-Para demonstrar uma poderosa aplicação do pacote `pycomp`, será exemplificado abaixo um trecho de código responsável por consolidar um Pipeline completo de preparação de dados, treinamento e avaliação de diferentes modelos de classificação frente a uma determinada task. Como base de dados, será utilizado o dataset [Titanic](https://www.kaggle.com/c/titanic) em um formato único (união dos arquivos `train.csv` e `test.csv`). Em termos de ferramental, serão aplicadas funções e métodos referentes aos módulos `pycomp.ml.transformers` e `pycomp.ml.trainer`.
+Para demonstrar uma poderosa aplicação do pacote `pycomp`, será exemplificado abaixo um trecho de código responsável por consolidar um Pipeline completo de preparação de dados, treinamento e avaliação de diferentes modelos de classificação frente a uma determinada task. Como base de dados, será utilizado o dataset [Titanic](https://www.kaggle.com/c/titanic) em um formato único (união dos arquivos `train.csv` e `test.csv`). Em termos de aprendizado de máquina, serão treinados e avaliados os modelos `LogisticRegression`, `DecisionTreeClassifier` e `RandomForestClassifiers`.
 
 ```python
 # Importando bibliotecas
@@ -92,6 +94,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from warnings import filterwarnings
+filterwarnings('ignore')
 
 from pycomp.ml.transformers import FormataColunas, FiltraColunas, DefineTarget, EliminaDuplicatas, PreencheDadosNulos, SplitDados
 from pycomp.ml.trainer import ClassificadorBinario
@@ -100,7 +105,7 @@ from pycomp.ml.trainer import ClassificadorBinario
 df = pd.read_csv('titanic.csv')
 cols_filter = ['survived', 'pclass', 'age', 'sibsp', 'fare']
 
-# Pipeline da primeira camada
+# Pipeline da primeira camada (utilizando classes do módulo pycomp.ml.transformers)
 first_layer_pipe = Pipeline([
     ('formatter', FormataColunas()),
     ('selector', FiltraColunas(features=cols_filter)),
@@ -117,6 +122,7 @@ features = list(X_train.columns)
 # Preparando classificadores
 tree_clf = DecisionTreeClassifier()
 log_reg = LogisticRegression()
+forest_clf = RandomForestClassifier()
 
 set_classifiers = {
     'DecisionTree': {
@@ -126,11 +132,16 @@ set_classifiers = {
     'LogisticRegression': {
         'model': log_reg,
         'params': None
+    },
+    'RandomForest': {
+        'model': forest_clf,
+        'params': None
     }
+
 }
 
 # Definindo variáveis de execução
-OUTPUT_PATH = 'results/training_results'
+OUTPUT_PATH = 'output/'
 
 # Inicializando objeto
 trainer = ClassificadorBinario()
@@ -138,78 +149,66 @@ trainer = ClassificadorBinario()
 # Treinando e avaliando modelos de classificação
 trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH)
 
-# Gerando gráficos de matriz de confusão para os classificadores
-trainer.plot_confusion_matrix(output_path=OUTPUT_PATH)
-
-# Gerando gráficos de curva ROC para os classificadores
-trainer.plot_roc_curve(output_path=OUTPUT_PATH)
+# Gerando análises gráficas para os modelos
+trainer.visual_analysis(features, output_path=OUTPUT_PATH)
 ```
 
-Ao utilizar as ferramentas disponibilizadas no módulo `ml` do pacote `pycomp`, o usuário consegue facilmente construir e executar um Pipeline de preparação de dados enxuto e otimizado a partir das classes pré definidas no módulo `transformers`. Em complemento a essa feature, o módulo `trainer` traz consigo a classe `ClassificadorBinario` com o objetivo de facilitar o treinamento e avaliação de classificadores binários. O usuário final necessita apenas fornecer uma base de dados como de input, os _estimators_ (modelos a serem treinados) e seus respectivos hyperparâmetros de busca a serem utilizados no processo. Detalhando um pouco mais os métodos utilizados no exemplo, tem-se:
+Ao utilizar as ferramentas disponibilizadas no módulo `ml` do pacote `pycomp`, o usuário consegue facilmente construir e executar um Pipeline de preparação de dados enxuto e otimizado a partir das classes pré definidas no módulo `transformers`. Em complemento a essa feature, o módulo `trainer` traz consigo a classe `ClassificadorBinario` com o objetivo de facilitar o treinamento e avaliação de classificadores binários. O usuário final necessita apenas fornecer uma base de dados como de input, os _estimators_ (modelos a serem treinados) e seus respectivos hyperparâmetros de busca a serem utilizados no processo. 
+
+No código, após a criação do objeto `trainer` da classe `ClassificadorBinario`, a simples execução de dois métodos abre um vasto leque de possibilidades de treinamento e avaliação de modelos. Tais métodos são:
 - `training_flow()`: treinamento e avaliação (treino e teste) de todos os classificadores passados como argumento da classe;
-- `plot_confusion_matrix()`: geração e salvamento de matriz de confusão (treino e teste) para os classificadores analisados;
-- `plot_roc_curve()`: geração e salvamento de imagem para curvas ROC (treino e teste) dos classificadores analisados.
+- `visual_analysis()`: construção de plotagens gráficas a serme utilizadas na avalidação e validação dos classificadores treinados
 
 ### Outputs
-Como feature adicional do `pycomp`, um objeto logger da biblioteca `logging` é instanciado automaticamente e utilizado nas definições do pacote, gerando assim um arquivo `exec_log/execution_log.log` no mesmo diretório de execução do script com os detalhes de cada passo dado nas funções e métodos aplicados. É esperado que o exemplo descrito acima gere a seguinte saída no cmd do OS ou a IDE:
+Como feature adicional do `pycomp`, um objeto logger da biblioteca `logging` é instanciado automaticamente e utilizado nas definições do pacote, gerando assim um arquivo `exec_log/execution_log.log` no mesmo diretório de execução do script com os detalhes de cada passo dado nas funções e métodos aplicados. É esperado que o exemplo descrito acima mostre, no cmd ou na IDE utilizada, uma saída próxima a:
 ```
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;162;Treinando modelo DecisionTree
-INFO;2020-11-05 00:07:14;trainer.py;trainer;182;Modelo DecisionTree treinado com sucesso
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;162;Treinando modelo LogisticRegression
-INFO;2020-11-05 00:07:14;trainer.py;trainer;182;Modelo LogisticRegression treinado com sucesso
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;217;Computando métricas do modelo DecisionTree utilizando validação cruzada com 5 K-folds
-INFO;2020-11-05 00:07:14;trainer.py;trainer;249;Métricas computadas com sucesso nos dados de treino em 0.142 segundos
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;282;Computando métricas do modelo DecisionTree utilizando dados de teste
-INFO;2020-11-05 00:07:14;trainer.py;trainer;311;Métricas computadas com sucesso nos dados de teste em 0.008 segundos
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;217;Computando métricas do modelo LogisticRegression utilizando validação cruzada com 5 K-folds
-INFO;2020-11-05 00:07:14;trainer.py;trainer;249;Métricas computadas com sucesso nos dados de treino em 0.341 segundos
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;282;Computando métricas do modelo LogisticRegression utilizando dados de teste
-INFO;2020-11-05 00:07:14;trainer.py;trainer;311;Métricas computadas com sucesso nos dados de teste em 0.007 segundos
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;97;Salvando arquivo
-INFO;2020-11-05 00:07:14;trainer.py;trainer;101;Arquivo salvo em: results/training_results/metrics.csv
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;416;Extraindo importância das features para o modelo DecisionTree
-INFO;2020-11-05 00:07:14;trainer.py;trainer;434;Extração da importância das features concluída com sucesso para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;416;Extraindo importância das features para o modelo LogisticRegression
-WARNING;2020-11-05 00:07:14;trainer.py;trainer;420;Modelo LogisticRegression não possui o método feature_importances_
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;97;Salvando arquivo
-INFO;2020-11-05 00:07:14;trainer.py;trainer;101;Arquivo salvo em: results/training_results/top_features.csv
-DEBUG;2020-11-05 00:07:14;trainer.py;trainer;562;Inicializando plotagem da matriz de confusão para os modelos
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;570;Retornando dados de treino e teste para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;583;Realizando predições para os dados de treino e teste (DecisionTree)
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;591;Gerando matriz de confusão para o modelo DecisionTree
-INFO;2020-11-05 00:07:15;trainer.py;trainer;604;Matriz de confusão gerada para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;570;Retornando dados de treino e teste para o modelo LogisticRegression
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;583;Realizando predições para os dados de treino e teste (LogisticRegression)
-DEBUG;2020-11-05 00:07:15;trainer.py;trainer;591;Gerando matriz de confusão para o modelo LogisticRegression
-INFO;2020-11-05 00:07:15;trainer.py;trainer;604;Matriz de confusão gerada para o modelo LogisticRegression
-INFO;2020-11-05 00:07:16;trainer.py;trainer;614;Imagem com as matrizes salva com sucesso em results/training_results/confusion_matrix.png
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;641;Inicializando plotagem da curva ROC para os modelos
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;647;Retornando labels e scores de treino e de teste para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;660;Calculando FPR, TPR e AUC de treino e teste para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;673;Plotando curva ROC de treino e teste para o modelo DecisionTree
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;647;Retornando labels e scores de treino e de teste para o modelo LogisticRegression
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;660;Calculando FPR, TPR e AUC de treino e teste para o modelo LogisticRegression
-DEBUG;2020-11-05 00:07:16;trainer.py;trainer;673;Plotando curva ROC de treino e teste para o modelo LogisticRegression
-INFO;2020-11-05 00:07:17;trainer.py;trainer;703;Imagem com a curva ROC salva com sucesso em results/training_results/roc_curve.png
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;234;Treinando modelo DecisionTree
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;258;Salvando arquivo pkl do modelo DecisionTree treinado
+WARNING;2020-11-07 12:52:13;trainer.py;trainer;132;Diretório output/models/ inexistente. Criando diretório no local especificado
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;139;Salvando modelo pkl no diretório especificado
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;234;Treinando modelo LogisticRegression
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;258;Salvando arquivo pkl do modelo LogisticRegression treinado
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;139;Salvando modelo pkl no diretório especificado
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;234;Treinando modelo RandomForest
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;258;Salvando arquivo pkl do modelo RandomForest treinado
+DEBUG;2020-11-07 12:52:13;trainer.py;trainer;139;Salvando modelo pkl no diretório especificado
+DEBUG;2020-11-07 12:52:14;trainer.py;trainer;293;Computando métricas do modelo DecisionTree utilizando validação cruzada com 5 K-folds
+[...]
+DEBUG;2020-11-07 12:52:31;trainer.py;trainer;1037;Plotando curvas de aprendizado de treino e validação para o modelo LogisticRegression
+DEBUG;2020-11-07 12:52:31;trainer.py;trainer;1019;Retornando parâmetros pro modelo RandomForest e aplicando método learning_curve
+DEBUG;2020-11-07 12:52:39;trainer.py;trainer;1037;Plotando curvas de aprendizado de treino e validação para o modelo RandomForest
+DEBUG;2020-11-07 12:52:39;trainer.py;trainer;179;Salvando imagem no diretório especificado
+INFO;2020-11-07 12:52:41;trainer.py;trainer;183;Imagem salva com sucesso em output/imgs/learning_curve.png
 ```
 
-Ao definir um diretório de saída, a execução dos métodos irá gerar arquivos úteis para uma definitiva avaliação do melhor classificador para a respectiva tarefa. No exemplo acima, ao definir a variável `OUTPUT_PATH` como `'results/training_results'`, tem-se o seguinte resultado:
+Ao definir um diretório de saída, a execução dos métodos irá gerar arquivos úteis para uma definitiva avaliação do melhor classificador para a respectiva tarefa. No exemplo acima, ao definir a variável `OUTPUT_PATH` como `'output/'`, tem-se o seguinte resultado:
 ```bash
-$ tree results/training_results/
-results/training_results/
-├── confusion_matrix.png
-├── metrics.csv
-├── roc_curve.png
-└── top_features.csv
+$ tree output/
+output
+├── imgs
+│   ├── confusion_matrix.png
+│   ├── feature_importance.png
+│   ├── learning_curve.png
+│   ├── roc_curve.png
+│   ├── score_bins_percent.png
+│   ├── score_bins.png
+│   └── score_distribution.png
+├── metrics
+│   ├── metrics.csv
+│   └── top_features.csv
+└── models
+    ├── decisiontree.pkl
+    ├── logisticregression.pkl
+    └── randomforest.pkl
 ```
 
 ## Próximos Passos
 - [x] Inserir função para plotagem de matriz de confusão (`trainer.py`)
 - [x] Inserir função para plotagem de curva ROC (`trainer.py`)
 - [x] Inserir função para plotagem de curva de distribuição de scores (`trainer.py`)
-- [ ] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
+- [x] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
 - [ ] Inserir função para análise shap dos modelos treinados (`trainer.py`)
-- [ ] Consolidar função `graphic_evaluation()` para gerar todas as análises acima (`trainer.py`)
+- [x] Consolidar função `visual_analysis()` para gerar todas as análises acima (`trainer.py`)
 - [ ] Brainstorming para pipelines automáticos de prep + treino (`transformers.py + trainer.py`)
 - [ ] Inserir GIF de demonstração do projeto
 
