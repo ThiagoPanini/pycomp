@@ -58,6 +58,8 @@ trainer.visual_analysis(features=features, output_path=OUTPUT_PATH)
 
 
 """
-Ideias: salvar o .pkl dos modelos (nova pasta chamada models com os .pkl)
-Modificar gráficos pra sempre plotar visões pra todos os modelos presentes na classe
+Ideias: salvar o .pkl dos modelos (nova pasta chamada models com os .pkl) [DONE]
+Modificar gráficos pra sempre plotar visões pra todos os modelos presentes na classe [DONE]
+
+Criar método para plotagem gráfica dos scores [DONE]
 """
