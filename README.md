@@ -41,7 +41,7 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 | File System                | `pycomp.fs.arquivos`     |         4         |        0        |        4            |        0        |
 | Logs                       | `pycomp.log.log_config`  |         1         |        0        |        1            |        0        |
 | Machine Learning           | `pycomp.ml.transformers` |         0         |        9        |        9            |        0        |
-|                            | `pycomp.ml.trainer`      |         7         |        1        |        8            |        0        |
+|                            | `pycomp.ml.trainer`      |         23         |        1        |        8            |        0        |
 
 
 ## Instalação
@@ -264,13 +264,5 @@ output/
 ## Referências
 
 Géron A., ed. (2017) Hands-On Machine Learning with Scikit-Learn & TensorFlow. 1st ed. California: O'Reilly
-@misc{AGeron,
-  author = {Géron, A.},
-  title = {handson-ml},
-  year = {2020},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/ageron/handson-ml}}
-}
- 	
+Géron A., handson-ml, (2020), GitHub repository, https://github.com/ageron/handson-ml  	
 Stanford University (Producer). (2019). Machine Learning. Retrieved from https://www.coursera.org/learn/machine-learning/home/welcome
