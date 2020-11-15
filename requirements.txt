@@ -12,13 +12,15 @@ jeepney==0.4.3
 joblib==0.17.0
 keyring==21.4.0
 kiwisolver==1.3.1
+llvmlite==0.34.0
 matplotlib==3.3.2
+numba==0.51.2
 numpy==1.19.3
 packaging==20.4
 pandas==1.1.3
 Pillow==8.0.1
 pkginfo==1.6.1
-pycomp==0.0.11
+-e git+https://github.com/ThiagoPanini/pycomp.git@93e22bb0534b2d472d04d427a8787f413207e717#egg=pycomp
 pycparser==2.20
 Pygments==2.7.2
 pyparsing==2.4.7
@@ -32,8 +34,10 @@ scikit-learn==0.23.2
 scipy==1.5.3
 seaborn==0.11.0
 SecretStorage==3.1.2
+shap==0.37.0
 six==1.15.0
 sklearn==0.0
+slicer==0.0.3
 threadpoolctl==2.1.0
 tqdm==4.51.0
 twine==3.2.0
