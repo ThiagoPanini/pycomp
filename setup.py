@@ -24,38 +24,53 @@ Ref [2.1]: https://stackoverflow.com/questions/1471994/what-is-setup-py
 
 # Bibliotecas
 from setuptools import setup, find_packages
+#from pip.req import parse_requirements
 
-# Definindo variáveis de setup
-__version__ = '0.0.9'
-__description__ = 'Fábrica de componentes Python'
-
-with open("README.md", "r") as f:
+# Lendo README.md
+with open("README.md", "r", encoding='utf-8') as f:
     __long_description__ = f.read()
-__long_description_content_type__ = 'text/markdown'
 
-__author__ = 'Thiago Panini'
-__author_email__ = 'thipanini94@gmail.com'
+# Lendo dependências do pacote
+"""install_reqs = parse_requirements('requirements_pkg.txt', session='hack')
+reqs = [str(ir.req) for ir in install_reqs]"""
 
 # Criando setup
 setup(
     name='pycomp',
-    version=__version__,
-    author=__author__,
-    author_email=__author_email__,
+    version='0.0.16',
+    author='Thiago Panini',
+    author_email='thipanini94@gmail.com',
     packages=find_packages(),
-    description=__description__,
+    install_requires=[
+        'numpy==1.19.3',
+        'pandas==1.1.3',
+        'joblib==0.17.0',
+        'scikit-learn==0.23.2',
+        'matplotlib==3.3.2',
+        'seaborn==0.11.0',
+        'shap==0.37.0'
+    ],
+    license='MIT',
+    description='Fábrica de componentes Python',
     long_description=__long_description__,
-    long_description_content_type=__long_description_content_type__,
+    long_description_content_type="text/markdown",
     url='https://github.com/ThiagoPanini/pycomp',
-    keywords='Python, Factory, Packages, Modules, Components',
+    keywords='Packages, Components, Machine Learning, AutoML',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Development Status :: 1 - Planning",
+        "Development Status :: 2 - Pre-Alpha",
+        "Environment :: Console",
+        "Framework :: Jupyter",
         "Intended Audience :: Developers",
         "Natural Language :: Portuguese (Brazilian)",
         "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Software Development :: Libraries :: Python Modules"
     ],
     python_requires=">=3.0.0"
@@ -63,3 +78,5 @@ setup(
 
 # Hint: publicando Source Archive (tar.gz) e Built Distribution (.whl)
 # python3 setup.py sdist bdist_wheel
+# twine check dist/*
+# python3 -m twine upload --skip-existing dist/*
