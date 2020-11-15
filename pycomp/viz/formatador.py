@@ -13,6 +13,11 @@ Sumário
 """
 
 # Importando bibliotecas
+import matplotlib
+
+# AnnotateBars class (referência na classe)
+from dataclasses import dataclass
+from typing import *
 
 
 """
