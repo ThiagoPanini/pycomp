@@ -199,7 +199,7 @@ class ClassificadorBinario:
             :arg random_search: flag para aplicação do RandomizedSearchCV [type: bool, default: False]
             :arg scoring: métrica a ser otimizada pelo RandomizedSearchCV [type: string, default: 'accuracy']
             :arg cv: K-folds utiliados na validação cruzada [type: int, default: 5]
-            :arg verbose: nível de verbosity da busca aleatória [type: int, default: 5]
+            :arg verbose: nível de verbosity da busca aleatória [type: int, default: -1]
             :arg n_jobs: quantidade de jobs aplicados durante a busca dos hiperparâmetros [type: int, default: -1]
 
         Retorno
@@ -214,10 +214,7 @@ class ClassificadorBinario:
         """
 
         # Referenciando argumentos adicionais
-        if 'approach' in kwargs:
-            approach = kwargs['approach']
-        else:
-            approach = ''
+        approach = kwargs['approach'] if 'approach' in kwargs else ''
 
         # Iterando sobre os modelos presentes no dicionário de classificadores
         try:
@@ -237,16 +234,16 @@ class ClassificadorBinario:
                         rnd_search = RandomizedSearchCV(model, params, scoring=kwargs['scoring'], cv=kwargs['cv'], 
                                                         verbose=kwargs['verbose'], random_state=42, n_jobs=kwargs['n_jobs'])
                         logger.debug('Aplicando RandomizedSearchCV')
-                        rnd_search.fit(X, y)
+                        rnd_search.fit(X_train, y_train)
 
                         # Salvando melhor modelo no atributo classifiers_info
                         self.classifiers_info[clf_key]['estimator'] = rnd_search.best_estimator_
                     else:
                         # Treinando modelo sem busca e salvando no atirbuto
                         self.classifiers_info[clf_key]['estimator'] = model.fit(X_train, y_train)
-                except Exception as e:
-                    logger.error(f'Erro ao treinar o modelo {clf_key}. Exception lançada: {e}')
-                    continue
+                except TypeError as te:
+                    logger.error(f'Erro ao aplicar RandomizedSearch. Exception lançada: {te}')
+                    exit()
 
                 logger.debug(f'Salvando arquivo pkl do modelo {model_name} treinado')
                 model = self.classifiers_info[clf_key]['estimator']
@@ -424,7 +421,11 @@ class ClassificadorBinario:
                 continue
 
             # Retornando modelo a ser avaliado
-            estimator = model_info['estimator']
+            try:
+                estimator = model_info['estimator']
+            except KeyError as e:
+                logger.error(f'Erro ao retornar a chave "estimator" do dicionário model_info. Modelo {model_name} não treinado')
+                continue
 
             # Computando performance em treino e em teste
             train_performance = self.compute_train_performance(model_name, estimator, X_train, y_train, cv=cv)
@@ -473,12 +474,16 @@ class ClassificadorBinario:
         for model_name, model_info in self.classifiers_info.items():
             # Validando possibilidade de extrair a importância das features do modelo
             logger.debug(f'Extraindo importância das features para o modelo {model_name}')
+
             try:
                 importances = model_info['estimator'].feature_importances_
-            except:
-                logger.warning(f'Modelo {model_name} não possui o método feature_importances_')
+            except KeyError as ke:
+                logger.error(f'Modelo {model_name} não treinado, sendo impossível extrair o método feature_importances_')
                 continue
-            
+            except AttributeError as ae:
+                logger.error(f'Modelo {model_name} não possui o método feature_importances_')
+                continue
+
             # Preparando o dataset para armazenamento das informações
             feat_imp['feature'] = features
             feat_imp['importance'] = importances
@@ -495,8 +500,8 @@ class ClassificadorBinario:
         # Validando salvamento dos resultados
         self.save_data(all_feat_imp, output_path=output_path, filename='top_features.csv')
 
-    def training_flow(self, set_classifiers, X_train, y_train, X_test, y_test, features,
-                      save=True, overwrite=True, output_path=os.path.join(os.getcwd(), 'output/files')):
+    def training_flow(self, set_classifiers, X_train, y_train, X_test, y_test, features, 
+                      output_path=os.path.join(os.getcwd(), 'output/'), **kwargs):
         """
         Método responsável por consolidar um fluxo completo de treinamento dos classificadores, bem como
         o levantamento de métricas e execução de métodos adicionais para escolha do melhor modelo
@@ -515,9 +520,14 @@ class ClassificadorBinario:
         :param X_test: conjunto de features do modelo contido nos dados de teste [type: np.array]
         :param y_test: array contendo a variável resposta dos dados de teste do modelo [type: np.array]
         :param features: lista contendo as features de um modelo [type: list]
-        :param save: flag booleano para indicar o salvamento do resultado em arquivo csv [type: bool, default=True]
-        :param overwrite: flag para indicar a sobrescrita ou append dos resultados [type: bool, default=True]
-        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'results'/)]
+        :param output_path: caminho onde o arquivo de resultados será salvo: [type: string, default=os.path.join(os.path.getcwd(), 'output/')]
+        :param **kwargs: argumentos adicionais do método
+            :arg approach: indicativo de sufixo para armazenamento no atributo classifiers_info [type: string, default: '']
+            :arg random_search: flag para aplicação do RandomizedSearchCV [type: bool, default: False]
+            :arg scoring: métrica a ser otimizada pelo RandomizedSearchCV [type: string, default: 'accuracy']
+            :arg cv: K-folds utiliados na validação cruzada [type: int, default: 5]
+            :arg verbose: nível de verbosity da busca aleatória [type: int, default: 5]
+            :arg n_jobs: quantidade de jobs aplicados durante a busca dos hiperparâmetros [type: int, default: -1]
 
         Retorno
         -------
@@ -534,8 +544,17 @@ class ClassificadorBinario:
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
 
+        # Extraindo parâmetros kwargs
+        approach = kwargs['approach'] if 'approach' in kwargs else ''
+        random_search = kwargs['random_search'] if 'random_search' in kwargs else False
+        scoring = kwargs['scoring'] if 'scoring' in kwargs else 'accuracy'
+        cv = kwargs['cv'] if 'cv' in kwargs else 5
+        verbose = kwargs['verbose'] if 'verbose' in kwargs else -1
+        n_jobs = kwargs['n_jobs'] if 'n_jobs' in kwargs else -1
+
         # Treinando classificadores
-        self.fit(set_classifiers, X_train, y_train, output_path=os.path.join(output_path, 'models/'))
+        self.fit(set_classifiers, X_train, y_train, approach=approach, random_search=random_search, scoring=scoring,
+                 cv=cv, verbose=verbose, n_jobs=n_jobs, output_path=os.path.join(output_path, 'models/'))
 
         # Avaliando modelos
         self.evaluate_performance(X_train, y_train, X_test, y_test, output_path=os.path.join(output_path, 'metrics/'))
@@ -1328,7 +1347,20 @@ class ClassificadorBinario:
         Retorno
         -------
         :return model_info: dicionário com informações registradas do modelo [type: dict]
-        dict_keys(['estimator', 'train_scores', 'test_scores', 'train_performance', 'test_performance', 'model_data', 'feature_importances'])
+            model_info = {
+                'estimator': model,
+                'train_scores': np.array,
+                'test_scores': np.array,
+                'train_performance': pd.DataFrame,
+                'test_performance': pd.DataFrame,
+                'model_data': {
+                    'X_train': np.array,
+                    'y_train': np.array,
+                    'X_test': np.array,
+                    'y_test': np.array,
+                'feature_importances': pd.DataFrame
+                }
+            }
         """
 
         logger.debug(f'Retornando informações registradas do modelo {model_name}')
@@ -1338,3 +1370,32 @@ class ClassificadorBinario:
         except Exception as e:
             logger.error(f'Erro ao retornar informações do modelo {model_name}. Exception lançada: {e}')
 
+    def _get_classifiers_info(self):
+        """
+        Método responsável por retornar o dicionário classifiers_info contendo todas as informações de todos os modelos
+
+        Parâmetros
+        ----------
+        None
+
+        Retorno
+        -------
+        :return classifiers_info: dicionário completo dos modelos presentes na classe
+            classifiers_info ={
+                'model_name': model_info = {
+                                'estimator': model,
+                                'train_scores': np.array,
+                                'test_scores': np.array,
+                                'train_performance': pd.DataFrame,
+                                'test_performance': pd.DataFrame,
+                                'model_data': {
+                                    'X_train': np.array,
+                                    'y_train': np.array,
+                                    'X_test': np.array,
+                                    'y_test': np.array,
+                                'feature_importances': pd.DataFrame
+                                }
+                            }
+        """
+
+        return self.classifiers_info
