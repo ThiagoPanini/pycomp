@@ -1,8 +1,9 @@
 # Importando módulo
-from pycomp.ml.trainer import ClassificadorBinario, plot_shap_analysis
+from pycomp.ml.trainer import ClassificadorBinario
 
 # Importando bibliotecas e lendo dados
 import pandas as pd
+import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -28,18 +29,47 @@ tree_clf = DecisionTreeClassifier()
 log_reg = LogisticRegression()
 forest_clf = RandomForestClassifier()
 
+# Logistic Regression hyperparameters
+logreg_param_grid = {
+    'C': np.linspace(0.1, 10, 20),
+    'penalty': ['l1', 'l2'],
+    'class_weight': ['balanced', None],
+    'random_state': [42],
+    'solver': ['liblinear']
+}
+
+# Decision Trees hyperparameters
+tree_param_grid = {
+    'criterion': ['entropy', 'gini'],
+    'max_depth': [3, 5, 10, 20],
+    'max_features': np.arange(1, X_train.shape[1]),
+    'class_weight': ['balanced', None],
+    'random_state': [42]
+}
+
+# Random Forest hyperparameters
+forest_param_grid = {
+    'bootstrap': [True, False],
+    'max_depth': [3, 5, 10, 20, 50],
+    'n_estimators': [50, 100, 200, 500],
+    'random_state': [42],
+    'max_features': ['auto', 'sqrt'],
+    'class_weight': ['balanced', None]
+}
+
+# Montando dicionário de classificadores a serme testados
 set_classifiers = {
-    'DecisionTree': {
-        'model': tree_clf,
-        'params': None
-    },
     'LogisticRegression': {
         'model': log_reg,
-        'params': None
+        'params': logreg_param_grid
+    },
+    'DecisionTree': {
+        'model': tree_clf,
+        'params': tree_param_grid
     },
     'RandomForest': {
         'model': forest_clf,
-        'params': None
+        'params': forest_param_grid
     }
 }
 
@@ -50,7 +80,7 @@ OUTPUT_PATH = 'tests/ml/output'
 trainer = ClassificadorBinario()
 
 # Fluxo de treino
-trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH)
+trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH, random_search=True)
 
 # Análise gŕafica
 trainer.visual_analysis(features=features, model_shap='DecisionTree', output_path=OUTPUT_PATH)
@@ -59,6 +89,7 @@ trainer.visual_analysis(features=features, model_shap='DecisionTree', output_pat
 model = trainer._get_estimator(model_name='RandomForest')
 metrics = trainer._get_metrics(model_name='RandomForest')
 model_info = trainer._get_model_info(model_name='RandomForest')
+classifiers_info = trainer._get_classifiers_info()
 
 
 """
