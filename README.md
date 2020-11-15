@@ -264,5 +264,7 @@ output/
 ## Referências
 
 Géron A., ed. (2017) Hands-On Machine Learning with Scikit-Learn & TensorFlow. 1st ed. California: O'Reilly
+
 Géron A., handson-ml, (2020), GitHub repository, https://github.com/ageron/handson-ml  	
+
 Stanford University (Producer). (2019). Machine Learning. Retrieved from https://www.coursera.org/learn/machine-learning/home/welcome
