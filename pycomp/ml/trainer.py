@@ -29,6 +29,7 @@ import itertools
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
+from pycomp.viz.formatador import format_spines, AnnotateBars
 
 
 """
@@ -605,11 +606,15 @@ class ClassificadorBinario:
             # Plotando gráficos
             fig, axs = plt.subplots(nrows=2, ncols=1, figsize=figsize)
             sns.boxplot(x='variable', y='value', data=df_metrics, hue='model', ax=axs[0], palette=palette)
-            sns.barplot(x='variable', y='value', data=metrics_group, hue='model', ax=axs[1], palette=palette)
+            sns.barplot(x='variable', y='value', data=metrics_group, hue='model', ax=axs[1], palette=palette, order=metrics_cols)
 
             # Customizando eixos
-            axs[0].set_title(f'Dispersão das métricas utilizando validação cruzada nos dados de treino com {cv} K-folds')
-            axs[1].set_title(f'Média para cada métrica obtida na validação cruzada')
+            axs[0].set_title(f'Dispersão das métricas utilizando validação cruzada nos dados de treino com {cv} K-folds', size=14, pad=15)
+            axs[1].set_title(f'Média para cada métrica obtida na validação cruzada', size=14, pad=15)
+            format_spines(axs[0], right_border=False)
+            format_spines(axs[1], right_border=False)
+            axs[1].get_legend().set_visible(False)
+            AnnotateBars(n_dec=3, color='black', font_size=12).vertical(axs[1])
         except Exception as e:
             logger.error(f'Erro ao plotar gráfico das métricas. Exception lançada: {e}')
             return
@@ -637,6 +642,7 @@ class ClassificadorBinario:
         logger.debug('Inicializando plotagem das features mais importantes para os modelos')
         feat_imp = pd.DataFrame({})
         i = 0
+        ax_del = 0
         nrows = len(self.classifiers_info.keys())
         fig, axs = plt.subplots(nrows=nrows, figsize=(16, nrows * 6))
         sns.set(style='white', palette='muted', color_codes=True)
@@ -649,6 +655,7 @@ class ClassificadorBinario:
                 importances = model_info['estimator'].feature_importances_
             except:
                 logger.warning(f'Modelo {model_name} não possui o método feature_importances_')
+                ax_del += 1
                 continue
             
             # Preparando o dataset para armazenamento das informações
@@ -662,13 +669,23 @@ class ClassificadorBinario:
                 sns.barplot(x='importance', y='feature', data=feat_imp, ax=axs[i], palette=palette)
 
                 # Customizando gráfico
-                axs[i].set_title(f'Feature Importance - {model_name}')
+                axs[i].set_title(f'Features Mais Importantes: {model_name}', size=14)
+                format_spines(axs[i], right_border=False)
                 i += 1
   
                 logger.info(f'Gráfico de importância das features plotado com sucesso para o modelo {model_name}')
             except Exception as e:
                 logger.error(f'Erro ao gerar gráfico de importância das features para o modelo {model_name}. Exception lançada: {e}')
                 continue
+
+        # Deletando eixos sobressalentes (se aplicável)
+        if ax_del > 0:
+            logger.debug('Deletando eixos referentes a análises não realizadas')
+            try:
+                for i in range(-1, -(ax_del+1), -1):
+                    fig.delaxes(axs[i])
+            except Exception as e:
+                logger.error(f'Erro ao deletar eixo. Exception lançada: {e}')
 
         # Salvando imagem
         self.save_fig(fig, output_path, img_name='feature_importance.png')
@@ -926,12 +943,16 @@ class ClassificadorBinario:
                 sns.kdeplot(train_scores[y_train == 0], ax=axs[i, 0], label='y=0', shade=shade, color='darkslateblue')
                 axs[i, 0].set_title(f'Distribuição de Score - {model_name} - Treino')
                 axs[i, 0].legend()
+                axs[i, 0].set_xlabel('Score')
+                format_spines(axs[i, 0], right_border=False)
 
                 # Distribuição de score pros dados de teste
                 sns.kdeplot(test_scores[y_test == 1], ax=axs[i, 1], label='y=1', shade=shade, color='crimson')
                 sns.kdeplot(test_scores[y_test == 0], ax=axs[i, 1], label='y=0', shade=shade, color='darkslateblue')
                 axs[i, 1].set_title(f'Distribuição de Score - {model_name} - Teste')
                 axs[i, 1].legend()
+                axs[i, 1].set_xlabel('Score')
+                format_spines(axs[i, 1], right_border=False)
                 i += 1
             except Exception as e:
                 logger.error(f'Erro ao plotar a curva para o modelo {model_name}. Exception lançada: {e}')
@@ -1010,16 +1031,16 @@ class ClassificadorBinario:
                 # Formatando legendas e títulos
                 axs1[i, 0].legend(loc='upper right')
                 axs1[i, 1].legend(loc='upper right')
-                axs1[i, 0].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Treino')
-                axs1[i, 1].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Teste')
-                #AnnotateBars(n_dec=0, color='dimgrey').vertical(axs1[i, 0])
-                #AnnotateBars(n_dec=0, color='dimgrey').vertical(axs1[i, 1])
+                axs1[i, 0].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Treino', size=14)
+                axs1[i, 1].set_title(f'Distribuição de Score em Faixas (Volume) - {model_name} - Teste', size=14)
 
-                """for df_scores, ax in zip([df_train_scores, df_test_scores], [axs[0, 0], axs[0, 1]]):
-                    sns.countplot(x='faixa', data=df_scores, hue='target', ax=ax, palette=['darkslateblue', 'crimson'])
-                    #AnnotateBars(n_dec=0, color='dimgrey').vertical(ax)
-                    ax.legend(loc='upper right')
-                    #format_spines(ax, right_border=False)"""
+                # Adicionando rótulos
+                AnnotateBars(n_dec=0, color='black', font_size=12).vertical(axs1[i, 0])
+                AnnotateBars(n_dec=0, color='black', font_size=12).vertical(axs1[i, 1])
+
+                # Formatando eixos
+                format_spines(axs1[i, 0], right_border=False)
+                format_spines(axs1[i, 1], right_border=False)
 
                 logger.debug(f'Plotando percentual de volumetria da faixa para o modelo {model_name}')
                 for df_percent, ax in zip([df_train_percent, df_test_percent], [axs2[i, 0], axs2[i, 1]]):
@@ -1038,19 +1059,13 @@ class ClassificadorBinario:
                         label_y = y + height / 2
                         ax.text(label_x, label_y, label_text, ha='center', va='center', color='white',
                                 fontweight='bold', size=10)
-                    #format_spines(ax, right_border=False)
+                    format_spines(ax, right_border=False)
 
                     # Formatando legendas e títulos
                     axs2[i, 0].set_title(f'Distribuição do Score em Faixas (Percentual) - {model_name} - Treino')
                     axs2[i, 1].set_title(f'Distribuição do Score em Faixas (Percentual) - {model_name} - Teste')
                 i += 1
 
-                # Final definitions
-                """axs[0, 0].set_title('Quantity of each Class by Range - Train', size=12, color='dimgrey')
-                axs[0, 1].set_title('Quantity of each Class by Range - Test', size=12, color='dimgrey')
-                axs[1, 0].set_title('Percentage of each Class by Range - Train', size=12, color='dimgrey')
-                axs[1, 1].set_title('Percentage of each Class by Range - Test', size=12, color='dimgrey')
-                plt.suptitle(f'Score Distribution by Range - {model_name}\n', size=14, color='black')"""
             except Exception as e:
                 logger.error(f'Erro ao plotar gráfico para o modelo {model_name}. Exception lançada: {e}')
                 continue
@@ -1150,89 +1165,49 @@ class ClassificadorBinario:
         Este método não retorna nenhum parâmetro além da análise shap especificada
         """
 
-        logger.debug(f'Inicializando análise shap a partir do retorno do modelo especificado ({model_name})')
-        i = 0
-        nrows = len(self.classifiers_info.keys())
-        fig, axs = plt.subplots(nrows=nrows, figsize=(16, nrows * 6))
-
-        # Iterando sobre os classificadores presentes na classe
-        for model_name, model_info in self.classifiers_info.items():
-            logger.debug(f'Retornando parâmetros para o modelo {model_name}')
-            try:
-                # Retornando dados de treino
-                model = model_info['estimator']
-                X_train = model_info['model_data']['X_train']
-                X_test = model_info['model_data']['X_test']
-                df_train = pd.DataFrame(X_train, columns=features)
-                df_test = pd.DataFrame(X_train, columns=features)
-            except Exception as e:
-                logger.error(f'Erro ao retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
-                continue
-
-            logger.debug(f'Criando explainer e gerando shap_values para o modelo {model_name}')
-            try:
-                explainer = shap.TreeExplainer(model)
-                shap_values = explainer.shap_values(df_train)
-            except Exception as e:
-                try:
-                    logger.warning(f'TreeExplainer não se encaixa no modelo {model_name}. Tentando LinearExplainer')
-                    explainer = shap.LinearExplainer(model)
-                    shap_values = explainer.shap_values(df_train)
-                except Exception as e:
-                    logger.error(f'Não foi possível retornar os objetos para o modelo {model_name}. Exception lançada: {e}')
-                    continue
-
-            logger.debug(f'Plotando análise shap para o modelo {model_name}')
-            try:
-                fig, ax = plt.subplots(figsize=figsize)
-                shap.summary_plot(shap_values[1], df_test, plot_type='violin', show=False)
-                plt.title(f'Shap Analysis (violin) para o modelo {model_name}')
-            except Exception as e:
-                logger.error(f'Erro ao plotar análise shap para o modelo {model_name}. Exception lançada: {e}')
-                continue
-            
-            # Salvando imagem
-            self.save_fig(fig, output_path, img_name=f'shap_analysis.png')
-
-
-        """try:
+        logger.debug(f'Explicando o modelo {model_name} através da análise shap')
+        try:
             model_info = self.classifiers_info[model_name]
             model = model_info['estimator']
         except Exception as e:
             logger.error(f'Classificador {model_name} não existente ou não treinado. Opções possíveis: {list(self.classifiers_info.keys())}')
             return
 
-        logger.debug(f'Retornando explainer e shap_values para o modelo {model_name}')
+        logger.debug(f'Retornando parâmetros da classe para o modelo {model_name}')
         try:
-            # Retornando dados de treino
+            # Retornando parâmetros do modelo
             X_train = model_info['model_data']['X_train']
             X_test = model_info['model_data']['X_test']
             df_train = pd.DataFrame(X_train, columns=features)
             df_test = pd.DataFrame(X_train, columns=features)
-
-            # Criando explainer
-            try:
-                explainer = shap.TreeExplainer(model)
-            except Exception as e:
-                explainer = shap.LinearExplainer(model)
-
-            # Retornando análise shap
-            shap_values = explainer.shap_values(df_train)
-
         except Exception as e:
-            logger.error(f'Erro ao retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+            logger.error(f'Erro ao retornar parâmetros para o modelo {model_name}. Exception lançada: {e}')
+
+        logger.debug(f'Criando explainer e gerando valores shap para o modelo {model_name}')
+        try:
+            explainer = shap.TreeExplainer(model, df_train)
+            shap_values = explainer.shap_values(df_test)[1]
+        except Exception as e:
+            try:
+                logger.warning(f'TreeExplainer não se encaixa no modelo {model_name}. Tentando LinearExplainer')
+                explainer = shap.LinearExplainer(model, df_train)
+                shap_values = explainer.shap_values(df_test)
+            except Exception as e:
+                logger.error(f'Não foi possível retornar os parâmetros para o modelo {model_name}. Exception lançada: {e}')
+                return
 
         logger.debug(f'Plotando análise shap para o modelo {model_name}')
         try:
             fig, ax = plt.subplots(figsize=figsize)
-            shap.summary_plot(shap_values[1], df_test, plot_type='violin', show=False)
+            shap.summary_plot(shap_values, df_test, plot_type='violin', show=False)
             plt.title(f'Shap Analysis (violin) para o modelo {model_name}')
             self.save_fig(fig, output_path, img_name=f'shap_analysis_{model_name}.png')
         except Exception as e:
-            logger.error(f'Erro ao plotar análise shap para o modelo {model_name}. Exception lançada: {e}')"""
+            logger.error(f'Erro ao plotar análise shap para o modelo {model_name}. Exception lançada: {e}')
+            return 
 
     def visual_analysis(self, features, metrics=True, feat_imp=True, cfmx=True, roc=True, score_dist=True, score_bins=True, 
-                        learn_curve=True, output_path=os.path.join(os.getcwd(), 'output/imgs/')):
+                        learn_curve=True, model_shap=None, output_path=os.path.join(os.getcwd(), 'output/imgs/')):
         """
         Método responsável por consolidar análises gráficas no processo de modelagem
 
@@ -1246,6 +1221,7 @@ class ClassificadorBinario:
         :param score_dist: flag indicativo da execução da método plot_score_distribution() [type: bool, default=True]
         :param score_bins: flag indicativo da execução da método plot_score_bins() [type: bool, default=True]
         :param learn_curve: flag indicativo da execução da método plot_learning_curve() [type: bool, default=True]
+        :param model_shap: chave do modelo a ser utilizado na análise shap [type: string, default=None]
 
         Retorno
         -------
@@ -1257,7 +1233,7 @@ class ClassificadorBinario:
         trainer.fit(set_classifiers, X_train, y_train, X_test, y_test)        
         """
 
-        logger.debug(f'Inicializando análises gráficas nos modelos treinados')
+        logger.debug(f'Inicializando análise gráfica nos modelos treinados')
         output_path = os.path.join(output_path, 'imgs/')
         try:
             # Verificando plotagem das métricas
@@ -1288,5 +1264,77 @@ class ClassificadorBinario:
             if learn_curve:
                 self.plot_learning_curve(output_path=output_path)
 
+            if model_shap is not None:
+                self.plot_shap_analysis(model_name=model_shap, features=features, output_path=output_path)
+
         except Exception as e:
             logger.error(f'Erro ao plotar análises gráficas. Exception lançada: {e}')
+
+    def _get_estimator(self, model_name):
+        """
+        Método responsável por retornar o estimator de um modelo selecionado
+
+        Parâmetros
+        ----------
+        :param model_name: chave identificadora do modelo no dicionário classifiers_info da classe [type: string]
+
+        Retorno
+        -------
+        :return model: estimator do modelo já treinado
+        """
+
+        logger.debug(f'Retornando estimator do modelo {model_name} já treinado')
+        try:
+            model_info = self.classifiers_info[model_name]
+            return model_info['estimator']
+        except Exception as e:
+            logger.error(f'Classificador {model_name} não existente ou não treinado. Opções possíveis: {list(self.classifiers_info.keys())}')
+            return
+
+    def _get_metrics(self, model_name):
+        """
+        Método responsável por retornar as métricas obtidas no treinamento
+
+        Parâmetros
+        ----------
+        None
+
+        Retorno
+        -------
+        :return model_performance: DataFrame contendo as métricas dos modelos treinados [type: pd.DataFrame]
+        """
+
+        logger.debug(f'Retornando as métricas dos modelos treinados')
+        try:
+            # Retornando dicionário do modelo e métricas já salvas
+            model_info = self.classifiers_info[model_name]
+            train_performance = model_info['train_performance']
+            test_performance = model_info['test_performance']
+            model_performance = train_performance.append(test_performance)
+            model_performance.reset_index(drop=True, inplace=True)
+
+            return model_performance
+        except Exception as e:
+            logger.error(f'Erro ao retornar as métricas para o modelo {model_name}. Exception lançada: {e}')
+
+    def _get_model_info(self, model_name):
+        """
+        Método responsável por coletar as informações registradas de um determinado modelo da classe
+
+        Parâmetros
+        ----------
+        :param model_name: chave identificadora do modelo no dicionário classifiers_info da classe [type: string]
+
+        Retorno
+        -------
+        :return model_info: dicionário com informações registradas do modelo [type: dict]
+        dict_keys(['estimator', 'train_scores', 'test_scores', 'train_performance', 'test_performance', 'model_data', 'feature_importances'])
+        """
+
+        logger.debug(f'Retornando informações registradas do modelo {model_name}')
+        try:
+            # Retornando dicionário do modelo
+            return self.classifiers_info[model_name]
+        except Exception as e:
+            logger.error(f'Erro ao retornar informações do modelo {model_name}. Exception lançada: {e}')
+
