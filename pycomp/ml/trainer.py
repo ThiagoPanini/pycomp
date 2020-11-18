@@ -243,7 +243,7 @@ class ClassificadorBinario:
                         self.classifiers_info[clf_key]['estimator'] = model.fit(X_train, y_train)
                 except TypeError as te:
                     logger.error(f'Erro ao aplicar RandomizedSearch. Exception lançada: {te}')
-                    exit()
+                    return
 
                 logger.debug(f'Salvando arquivo pkl do modelo {model_name} treinado')
                 model = self.classifiers_info[clf_key]['estimator']
@@ -1323,7 +1323,7 @@ class ClassificadorBinario:
         :return model_performance: DataFrame contendo as métricas dos modelos treinados [type: pd.DataFrame]
         """
 
-        logger.debug(f'Retornando as métricas dos modelos treinados')
+        logger.debug(f'Retornando as métricas do modelo {model_name}')
         try:
             # Retornando dicionário do modelo e métricas já salvas
             model_info = self.classifiers_info[model_name]
@@ -1399,3 +1399,7 @@ class ClassificadorBinario:
         """
 
         return self.classifiers_info
+
+"""
+Ideia: criar método para plotagem de boxplot pra features numéricas por faixa de score (bin_range)
+"""
