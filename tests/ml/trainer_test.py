@@ -1,5 +1,5 @@
 # Importando módulo
-from pycomp.ml.trainer import ClassificadorBinario
+from pycomp.ml.trainer import ClassificadorBinario, plot_feature_score_dist
 
 # Importando bibliotecas e lendo dados
 import pandas as pd
@@ -83,13 +83,19 @@ trainer = ClassificadorBinario()
 trainer.training_flow(set_classifiers, X_train, y_train, X_test, y_test, features, output_path=OUTPUT_PATH, random_search=True)
 
 # Análise gŕafica
-trainer.visual_analysis(features=features, model_shap='DecisionTree', output_path=OUTPUT_PATH)
+#trainer.visual_analysis(features=features, model_shap='DecisionTree', output_path=OUTPUT_PATH)
 
 # Retornando informações relevantes de um modelo específico
 model = trainer._get_estimator(model_name='RandomForest')
 metrics = trainer._get_metrics(model_name='RandomForest')
 model_info = trainer._get_model_info(model_name='RandomForest')
 classifiers_info = trainer._get_classifiers_info()
+
+# Verificando distribuição de features específicas em relação a faixas de score
+plot_feature_score_dist(data=X_test, feature='fare', model=model, kind='boxplot',
+                        output_path='tests/ml/output/imgs/models_eval', img_name='fare_boxplot_score.png')
+plot_feature_score_dist(data=X_test, feature='age', model=model, kind='kdeplot',
+                        output_path='tests/ml/output/imgs/models_eval', img_name='age_kdeplot_score.png')
 
 
 """

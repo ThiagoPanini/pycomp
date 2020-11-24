@@ -14,6 +14,8 @@ Sumário
 
 # Importando bibliotecas
 import matplotlib
+from matplotlib.patches import Patch
+from matplotlib.axes import Axes
 
 # AnnotateBars class (referência na classe)
 from dataclasses import dataclass
@@ -68,9 +70,10 @@ def format_spines(ax, right_border=True):
 
 # Referência: https://towardsdatascience.com/annotating-bar-charts-and-other-matplolib-techniques-cecb54315015
 # Criando allias
-Patch = matplotlib.patches.Patch
+#Patch = matplotlib.patches.Patch
 PosVal = Tuple[float, Tuple[float, float]]
-Axis = matplotlib.axes.Axes
+#Axis = matplotlib.axes.Axes
+Axis = Axes
 PosValFunc = Callable[[Patch], PosVal]
 
 @dataclass
@@ -105,3 +108,26 @@ class AnnotateBars:
         for p in ax.patches:
             value, pos = func(p)
             ax.annotate(f"{value:.{self.n_dec}f}", pos, **cfg)
+
+
+# Definindo funções úteis para plotagem dos rótulos no gráfico
+def make_autopct(values):
+    """
+    Função para configuração de rótulos em gráficos de rosca
+
+    Parâmetros
+    ----------
+    :param values: valores atrelados ao rótulo [type: np.array]
+
+    Retorno
+    -------
+    :return my_autopct: string formatada para plotagem dos rótulos
+    """
+
+    def my_autopct(pct):
+        total = sum(values)
+        val = int(round(pct * total / 100.0))
+
+        return '{p:.1f}%\n({v:d})'.format(p=pct, v=val)
+
+    return my_autopct

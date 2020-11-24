@@ -25,6 +25,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import cross_val_score, cross_val_predict, learning_curve
 from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, \
                             f1_score, confusion_matrix, roc_curve
+from sklearn.exceptions import NotFittedError
 import itertools
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -1400,6 +1401,133 @@ class ClassificadorBinario:
 
         return self.classifiers_info
 
+
 """
-Ideia: criar método para plotagem de boxplot pra features numéricas por faixa de score (bin_range)
+---------------------------------------------------
+--------------- 2. CLASSIFICAÇÃO ------------------
+       2.2. Funções de Análise de Modelos
+---------------------------------------------------
 """
+
+def save_fig(fig, output_path, img_name, tight_layout=True, dpi=300):
+    """
+    Função responsável por salvar imagens geradas pelo matplotlib/seaborn
+
+    Parâmetros
+    ----------
+    :param fig: figura criada pelo matplotlib para a plotagem gráfica [type: plt.figure]
+    :param output_file: caminho final a ser salvo (+ nome do arquivo em formato png) [type: string]
+    :param tight_layout: flag que define o acerto da imagem [type: bool, default=True]
+    :param dpi: resolução da imagem a ser salva [type: int, default=300]
+
+    Retorno
+    -------
+    Este método não retorna nenhum parâmetro além do salvamento da imagem em diretório especificado
+
+    Aplicação
+    ---------
+    fig, ax = plt.subplots()
+    save_fig(fig, output_path='output/imgs', img_name='imagem.png')
+    """
+
+    # Verificando se diretório existe
+    if not os.path.isdir(output_path):
+        logger.warning(f'Diretório {output_path} inexistente. Criando diretório no local especificado')
+        try:
+            os.makedirs(output_path)
+        except Exception as e:
+            logger.error(f'Erro ao tentar criar o diretório {output_path}. Exception lançada: {e}')
+
+    # Acertando layout da imagem
+    if tight_layout:
+        fig.tight_layout()
+
+    logger.debug('Salvando imagem no diretório especificado')
+    try:
+        output_file = os.path.join(output_path, img_name)
+        fig.savefig(output_file, dpi=300)
+        logger.info(f'Imagem salva com sucesso em {output_file}')
+    except Exception as e:
+        logger.error(f'Erro ao salvar imagem. Exception lançada: {e}')
+
+def plot_feature_score_dist(data, feature, model, figsize=(16, 8), kind='boxplot', bin_range=.20, palette='magma',
+                            save=True, output_path='output/imgs', img_name='feature_score_dist.png'):
+    """
+    Função responsável por plotar a distribuição de uma determinada variável do dataset em 
+    faixas de score obtidas através das probabilidades de um modelo preditivo
+    
+    Parâmetros
+    ----------
+    :param data: base de dados a ser analisada [type: pd.DataFrame]
+    :param feature: referência da coluna a ser analisada [type: string]
+    :param model: modelo preditivo já treinado [type: estimator]
+    :param figsize: dimensões da figura de plotagem [type: tuple, default=(16, 10)]
+    :param kind: tipo de gráfico a ser plotado [type: string, default='boxplot']
+        *opções: 'boxplot', 'boxenplot', 'stripplot', 'kdeplot'
+    :param bin_range: separador das faixas de score do modelo [type: float, default=.20]
+    :param palette: colormap utilizado na plotagem gráfica [type: string, default='magma']
+    :param save: flag para indicar o salvamento da imagem gerada [type: bool, default=True]
+    :param output_path: diretório de salvamento da imagem gerada [type: string, default='output/imgs']
+    :param img_name: nome do arquivo a ser salvo [type: string, default='feature_model_score_dist.png']
+        
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além da figura plotada utilizando o método boxplot do seaborn
+    
+    Aplicação
+    ---------
+    # Treinando modelo preditivo
+    model = RandomForestClassifier()
+    model.fit(X_train_prep, y_train)
+    
+    # Analisando distribuição de uma variável
+    plot_feature_score_proba(X_train_prep, feature='numerical_col', model=model)
+    """
+    
+    model_name = type(model).__name__
+    logger.debug(f'Retornando probabilidades do modelo {model_name}')
+    df = data.copy()
+    try:
+        y_scores = model.predict_proba(df)[:, 1]
+    except NotFittedError as nfe:
+        logger.error(f'Modelo {model_name} não foi treinado, impossibilitando o retorno das probabilidades. Exception: {nfe}')
+        return
+    
+    logger.debug('Criando faixas com as probabilidades obtidas')
+    try:
+        bins = np.arange(0, 1.01, bin_range)
+        bins_labels = [str(round(list(bins)[i - 1], 2)) + ' a ' + str(round(list(bins)[i], 2)) for i in range(len(bins)) if i > 0]
+        df['faixa'] = pd.cut(y_scores, bins, labels=bins_labels)
+    except Exception as e:
+        logger.error(f'Erro ao criar as faixas do modelo. Exception lançada: {e}')
+        return
+    
+    logger.debug(f'Plotando análise de distribuição {kind} para a variável {feature}')
+    try:
+        fig, ax = plt.subplots(figsize=figsize)
+        
+        # Validando tipo de plotagem
+        if kind == 'boxplot':
+            sns.boxplot(x='faixa', y=feature, data=df, palette=palette)
+        elif kind == 'boxenplot':
+            sns.boxenplot(x='faixa', y=feature, data=df, palette=palette)
+        elif kind == 'stripplot':
+            sns.stripplot(x='faixa', y=feature, data=df, palette=palette)
+        elif kind == 'kdeplot':
+            # Plotando um gráfico de distribuição pra cada categoria
+            for label in bins_labels:
+                sns.kdeplot(df[df['faixa']==label][feature], ax=ax, label=label, shade=True)
+                plt.legend()
+        else:
+            logger.warning(f'Tipo de plotagem {kind} não disponível. Selecione entre ["boxplot", "boxenplot", "stripplot"]')
+            return
+        
+        ax.set_title(f'Gráfico ${kind}$ de ${feature}$ nas faixas de score do modelo ${model_name}$', size=14)
+        format_spines(ax, right_border=False)
+    except Exception as e:
+        logger.error(f'Erro ao plotar o gráfico para a variável {feature}. Exception: {e}')
+        return
+    
+    # Validando salvamento da figura
+    if save:
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
