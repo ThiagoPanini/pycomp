@@ -32,6 +32,10 @@ Literalmente, uma fábrica de componentes em Python criada para auxiliar impleme
   - _transformers.py*_
   - _trainer.py*_
   
+- :bar_chart: __viz__: o módulo viz tem por objetivo proporcionar componentes prontos para geração e customização de gráficos em python utilizando as bibliotecas matplotlib e seaborn. As funções contidos neste módulo trazem códigos consolidados para geração de insights em bases de dados a partir de análises gráficas personalizadas. Entre os componentes, é possível listar:
+  - _formatador.py*_
+  - _insights.py*_
+  
 - :thought_balloon: __Em andamento...__
 
 A fábrica está a todo vapor! Sua capacidade de produção e seu leque de fornecimento pode ser resumido em:
@@ -41,7 +45,9 @@ A fábrica está a todo vapor! Sua capacidade de produção e seu leque de forne
 | File System                | `pycomp.fs.arquivos`     |         4         |        0        |        4            |        0        |
 | Logs                       | `pycomp.log.log_config`  |         1         |        0        |        1            |        0        |
 | Machine Learning           | `pycomp.ml.transformers` |         0         |        9        |        9            |        0        |
-|                            | `pycomp.ml.trainer`      |         23         |        1        |        8            |        0        |
+|                            | `pycomp.ml.trainer`      |         23        |        1        |        24           |        0        |
+| Viz                        | `pycomp.viz.formatador`  |         1         |        1        |        2            |        0        |
+|                            | `pycomp.viz.insights`    |         5         |        0        |        5            |        0        |
 
 
 ## Instalação
@@ -259,6 +265,7 @@ output/
 - [x] Consolidar função `visual_analysis()` para gerar todas as análises acima (`trainer.py`)
 - [ ] Brainstorming para pipelines automáticos de prep + treino (`transformers.py + trainer.py`)
 - [ ] Inserir GIF de demonstração do projeto
+- [ ] Finalização do módulo insights para plotagens gráficas e aplicação de EDA em bases de dados (`insights.py`)
 
 
 ## Referências
