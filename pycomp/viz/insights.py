@@ -503,3 +503,85 @@ def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs)
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_countplot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
+def plot_pct_countplot(df, col, hue, orientation='horizontal', figsize=(10, 7), **kwargs):
+    """
+    Função responsável por plotar um gráfico de barras de volumetrias (countplot)
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param col: referência de coluna a ser plotada [type: string]
+    :param hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+    :param orientation: horizontal ou vertical [type: string, default='horizontal']
+    :param figsize: dimensões da figura de plotagem [type: tuple, default=(10, 7)]
+    :param **kwargs: parâmetros adicionais da função   
+        :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg label_names: lista de rótulos de eixo [type: int, default=None]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_donutchart.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de uma plotagem de representatividade por grupo
+
+    Aplicação
+    ---------
+    plot_countplot(df=df, col='column')
+    """
+    
+    # Validando presença da coluna na base
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
+        return
+    
+    # Validando presença da coluna hue na base
+    if hue not in df.columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+    
+    # Retornando parâmetros de filtro de colunas
+    top = kwargs['top'] if 'top' in kwargs else -1
+    if top > 0:
+        cat_count = df[col].value_counts()
+        top_categories = cat_count[:top].index
+        df = df[df[col].isin(top_categories)]
+        
+    # Retornando parâmetros de plotagem
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    kind = 'barh' if orientation == 'horizontal' else 'bar'
+    title = kwargs['title'] if 'title' in kwargs else f'Representatividade de {hue} para a coluna {col}'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    
+    # Rótulos de medida para a plotagem
+    if 'label_names' in kwargs:
+        label_names = kwargs['label_names']
+        if type(label_names) is dict:
+            try:
+                label_names = df[col].map(label_names).value_counts().index
+            except Exception as e:
+                print(f'Erro ao mapear o dicionário label_names na Series da coluna. Exception: {e}')
+                label_names = df[col].value_counts().index
+    else:
+        label_names = None
+    
+    # Realizando quebra agrupada das colunas
+    fig, ax = plt.subplots(figsize=figsize)
+    col_to_hue = pd.crosstab(df[col], df[hue])
+    col_to_hue.div(col_to_hue.sum(1).astype(float), axis=0).plot(kind=kind, stacked=True, ax=ax, 
+                                                                 colormap=palette)
+    
+    # Customizando gráfico
+    ax.set_title(title, size=size_title, pad=20)
+    if label_names is not None:
+        ax.set_yticklabels(label_names)
+
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_{hue}_pctcountplot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+

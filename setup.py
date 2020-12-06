@@ -55,7 +55,7 @@ setup(
     long_description=__long_description__,
     long_description_content_type="text/markdown",
     url='https://github.com/ThiagoPanini/pycomp',
-    keywords='Packages, Components, Machine Learning, AutoML',
+    keywords='Packages, Components, Machine Learning, AutoML, Viz',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
