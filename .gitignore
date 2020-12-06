@@ -1,7 +1,7 @@
 # Diretórios de teste
 exec_log/
 log/
-#tests/
+tests/
 pycomp/ml/trainer.ipynb
 pycomp/ml/trainer_test.py
 
