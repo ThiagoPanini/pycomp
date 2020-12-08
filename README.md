@@ -25,7 +25,6 @@ Literalmente, uma fábrica de componentes em Python criada para auxiliar impleme
 - :file_folder: __fs__: módulo responsável por auxiliar o manuseio de arquivos em sistemas operacionais. Em seu conteúdo, é possível encontrar funções úteis para a cópia de arquivos de um diretório origem para um diretório destino, além de funções utilizadas para a validação de presença e atualização de arquivos, entre outras.
 
 - :pencil: __log__: módulo com o objetivo de facilitar a geração, configuração e o armazenamento de logs de execução dos demais módulos do pacote.
-  - _log_config.py*_
   
 - :robot: __ml__: provavelmente o mais completo do pacote, o módulo ml (machine learning) contém componentes apropriados para a construção e aplicação de pipelines de pré-processamento de dados, além de blocos de código responsáveis por automatizar o treinamento e avaliação de modelos de aprendizado de máquina. 
   
