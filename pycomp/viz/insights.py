@@ -461,8 +461,11 @@ def plot_countplot(df, col, **kwargs):
         for p in ax.patches:
             x = p.get_bbox().get_points()[:, 0]
             y = p.get_bbox().get_points()[1, 1]
-            ax.annotate('{}\n{:.1f}%'.format(int(y), 100. * y / ncount), (x.mean(), y), 
-                        ha='center', va='bottom', size=size_labels)
+            try:
+                ax.annotate('{}\n{:.1f}%'.format(int(y), 100. * y / ncount), (x.mean(), y), 
+                            ha='center', va='bottom', size=size_labels)
+            except ValueError as ve: # Erro por divisão por zero em entradas inexistentes pela quebra
+                continue
         
         # Labels
         if 'label_names' in kwargs:
@@ -485,8 +488,11 @@ def plot_countplot(df, col, **kwargs):
         for p in ax.patches:
             x = p.get_bbox().get_points()[1, 0]
             y = p.get_bbox().get_points()[:, 1]
-            ax.annotate('{} ({:.1f}%)'.format(int(x), 100. * x / ncount), (x, y.mean()), 
-                        va='center', size=size_labels)
+            try:
+                ax.annotate('{} ({:.1f}%)'.format(int(x), 100. * x / ncount), (x, y.mean()), 
+                            va='center', size=size_labels)
+            except ValueError as ve: # Erro por divisão por zero em entradas inexistentes pela quebra
+                continue
 
         # Labels
         if 'label_names' in kwargs:
@@ -614,17 +620,18 @@ def plot_pct_countplot(df, col, hue, **kwargs):
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_{hue}_pctcountplot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def plot_aggregation(df, group_col, value_col, aggregation, **kwargs):
+def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
     """
-    Função responsável por plotar um gráfico de barras de volumetrias (countplot)
+    Função responsável por plotagem de gráficos de agregação em barras
     
     Parâmetros
     ----------
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
     :param group_col: coluna pivot de agrupamento [type: string]
     :param value_col: coluna com os valores a serem agregados [type: string]
-    :param aggregation: informação da agregação utilizada na análise [type: string]
+    :param aggreg: informação da agregação utilizada na análise [type: string]
     :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
         :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
         :arg orient: horizontal ou vertical [type: string, default='h']
@@ -632,21 +639,22 @@ def plot_aggregation(df, group_col, value_col, aggregation, **kwargs):
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
         :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
         :arg size_title: tamanho do título [type: int, default=16]
-        :arg size_label: tamanho do rótulo [type: int, default=14]
+        :arg size_label: t    hue = kwargs['hue'] if 'hue' in kwargs and kwargs['hue'] is not Noneamanho do rótulo [type: int, default=14]
         :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
         :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
     
     Retorno
     -------
-    Essa função não retorna nenhum parâmetro além de uma plotagem de representatividade por grupo
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
 
     Aplicação
     ---------
-    plot_pct_countplot(df=df, col='column', hue='hue')
+    plot_aggregation(df=df, group_col='group', value_col='value', aggreg='agg')
     """
     
     # Verificando presença das colunas na base
+    hue = kwargs['hue'] if 'hue' in kwargs else None
     df_columns = df.columns
     if group_col not in df_columns:
         print(f'Coluna {group_col} não presente na base')
@@ -654,13 +662,19 @@ def plot_aggregation(df, group_col, value_col, aggregation, **kwargs):
     if value_col not in df_columns:
         print(f'Coluna {value_col} não presente na base')
         return
-    
+    if hue is not None and hue not in df_columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+
     # Aplicando agregação configurada
     try:
-        df_group = df.groupby(by=group_col, as_index=False).agg({value_col: aggregation})
+        if hue is not None:
+            df_group = df.groupby(by=[group_col, hue], as_index=False).agg({value_col: aggreg})
+        else:
+            df_group = df.groupby(by=group_col, as_index=False).agg({value_col: aggreg})
         df_group.sort_values(by=value_col, ascending=False, inplace=True)
     except AttributeError as ae:
-        print(f'Erro ao aplicar agregação com {aggregation}. Excepion lançada: {ae}')
+        print(f'Erro ao aplicar agregação com {aggreg}. Excepion lançada: {ae}')
         
     # Filtrando entradas
     if 'top' in kwargs and kwargs['top'] > 0:
@@ -684,13 +698,13 @@ def plot_aggregation(df, group_col, value_col, aggregation, **kwargs):
         y = group_col
         
     # Retornando parâmetros de formatação da plotagem
-    title = kwargs['title'] if 'title' in kwargs else f'Agrupamento de {group_col} por {aggregation} de {value_col}'
+    title = kwargs['title'] if 'title' in kwargs else f'Agrupamento de {group_col} por {aggreg} de {value_col}'
     size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
     size_labels = kwargs['size_labels'] if 'size_labels' in kwargs else 14
     
     # Construindo plotagem
     fig, ax = plt.subplots(figsize=figsize)
-    sns.barplot(x=x, y=y, data=df_group, palette=palette, ci=None, orient=orient)
+    sns.barplot(x=x, y=y, data=df_group, hue=hue, palette=palette, ci=None, orient=orient)
     
     # Formatando plotagem
     ax.set_title(title, size=size_title, pad=20)
@@ -705,7 +719,127 @@ def plot_aggregation(df, group_col, value_col, aggregation, **kwargs):
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
-        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{value_col}_{aggregation}plot_by{group_col}.png'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{value_col}{hue}_{aggreg}plot_by{group_col}.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
+def plot_distplot(df, col, kind='dist', **kwargs):
+    """
+    Função responsável por plotagem de variáveis contínuas em formato de distribuição
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param col: referência de coluna, de preferência numérica, a ser analisada [type: string]
+    :param kind: tipo de plotagem de distribuição [type: string, default='dist']
+        *opções: ['dist', 'kde', 'box', 'boxen', 'strip']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
+
+    Aplicação
+    ---------
+    plot_aggregation(df=df, group_col='group', value_col='value', aggreg='agg')
+    """
+
+    # Verificando presença das colunas na base
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
+        return
+    if hue is not None and hue not in df.columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+    
+    # Validando tipo de plotagem
+    possible_kinds = ['dist', 'kde', 'box', 'boxen', 'strip']
+    if kind not in possible_kinds:
+        print(f'Parâmetro kind inválido. Opções possívels: {possible_kinds}')
+
+    # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    hist = kwargs['hist'] if 'hist' in kwargs else False
+    kde = kwargs['kde'] if 'kde' in kwargs else True
+    rug = kwargs['rug'] if 'rug' in kwargs else False
+    shade = kwargs['shade'] if 'shade' in kwargs else True
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    title = kwargs['title'] if 'title' in kwargs else f'{kind.title()}plot para a Variável {col}'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+
+    sns.set(style='white', palette='muted', color_codes=True)
+
+    # Construindo plotagem
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Distplot
+    if kind == 'dist':
+        if hue is not None:
+            for cat in df[hue].value_counts().index:
+                sns.distplot(df[df[hue]==cat][col], ax=ax, hist=hist, kde=kde, rug=rug, label=cat)
+        else:
+            sns.distplot(df[col], ax=ax, hist=hist, kde=kde, rug=rug)
+    # Kdeplot        
+    elif kind == 'kde':
+        if hue is not None:
+            for cat in df[hue].value_counts().index:
+                sns.kdeplot(df[df[hue]==cat][col], ax=ax, shade=shade, label=cat)
+        else:
+            sns.kdeplot(df[col], ax=ax, shade=shade)
+    # Boxplot
+    elif kind == 'box':
+        if hue is not None:
+            sns.boxplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.boxplot(y=col, data=df, ax=ax, palette=palette)
+    # Boxenplot
+    elif kind == 'boxen':
+        if hue is not None:
+            sns.boxenplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.boxenplot(y=col, data=df, ax=ax, palette=palette)
+    # Stripplot
+    elif kind == 'strip':
+        if hue is not None:
+            sns.stripplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.stripplot(y=col, data=df, ax=ax, palette=palette)
+            
+    # Modificando labels
+    if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
+        labels_old = ax.get_xticklabels()
+        labels = [l.get_text() for l in labels_old]
+        try:
+            # Convertendo textos antes do mapeamento
+            if type(list(kwargs['label_names'].keys())[0]) is int:
+                labels = [int(l) for l in labels]
+            elif type(list(kwargs['label_names'].keys())[0]) is float:
+                labels = [float(l) for l in labels]
+
+            # Mapeando rótulos customizados
+            labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+            ax.set_xticklabels(labels)
+        except Exception as e:
+            print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+            
+    # Customizando gráfico
+    format_spines(ax=ax, right_border=False)
+    ax.set_title(title, size=size_title)
+    if kind in ['dist', 'kde'] and hue is not None:
+        ax.legend(title=hue)
         
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}{hue}_{kind}plot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+

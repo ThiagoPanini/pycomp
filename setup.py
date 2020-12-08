@@ -37,7 +37,7 @@ reqs = [str(ir.req) for ir in install_reqs]"""
 # Criando setup
 setup(
     name='pycomp',
-    version='0.1.1',
+    version='0.1.2',
     author='Thiago Panini',
     author_email='thipanini94@gmail.com',
     packages=find_packages(),
@@ -60,7 +60,7 @@ setup(
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Framework :: Jupyter",
         "Intended Audience :: Developers",
