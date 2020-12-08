@@ -37,7 +37,7 @@ reqs = [str(ir.req) for ir in install_reqs]"""
 # Criando setup
 setup(
     name='pycomp',
-    version='0.1.0',
+    version='0.1.2',
     author='Thiago Panini',
     author_email='thipanini94@gmail.com',
     packages=find_packages(),
@@ -55,12 +55,12 @@ setup(
     long_description=__long_description__,
     long_description_content_type="text/markdown",
     url='https://github.com/ThiagoPanini/pycomp',
-    keywords='Packages, Components, Machine Learning, AutoML',
+    keywords='Packages, Components, Machine Learning, AutoML, Viz',
     include_package_data=True,
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Framework :: Jupyter",
         "Intended Audience :: Developers",

@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.lines import Line2D
 
-from pycomp.viz.formatador import make_autopct, format_spines
+from pycomp.viz.formatador import make_autopct, format_spines, AnnotateBars
 
 
 """
@@ -72,7 +72,7 @@ def save_fig(fig, output_path, img_name, tight_layout=True, dpi=300):
             print(f'Erro ao salvar imagem. Exception lançada: {e}')
             return
 
-def plot_donut_chart(df, col, figsize=(8, 8), circle_radius=0.8, **kwargs):
+def plot_donut_chart(df, col, **kwargs):
     """
     Função responsável por plotar um gráfico de rosca customizado para uma determinada coluna da base
     
@@ -80,11 +80,12 @@ def plot_donut_chart(df, col, figsize=(8, 8), circle_radius=0.8, **kwargs):
     ----------
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
     :param col: nome da coluna a ser analisada [type: string]
-    :param figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
-    :param circle_radius: raio do círculo central do gráfico [type: float, default=0.8]
     :param **kwargs: parâmetros adicionais da função
-        :arg label_names: lista com labels personalizados para os rótulos [type: list, default=value_counts().index]
-        :arg flag_ruido: índice de filtro para eliminar as n últimas entradas [type: float, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg circle_radius: raio do círculo central do gráfico [type: float, default=0.8]
+        :arg circle_radius_color: cor do círculo central do gráfico [type: string, default='white']
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg top: índice de filtro das top categorias a serem plotadas [type: int]
         :arg colors: lista de cores para aplicação na plotagem [type: list]
         :arg text: texto central do gráfico de rosca [type: string, default=f'Total: \n{sum(values)}']
         :arg title: título do gráfico [type: string, default=f'Gráfico de Rosca para a Variável ${col}$']
@@ -96,52 +97,48 @@ def plot_donut_chart(df, col, figsize=(8, 8), circle_radius=0.8, **kwargs):
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
         :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_donutchart.png']
     
-    
     Retorno
     -------
     Essa função não retorna nenhum parâmetro além da plotagem customizada do gráfico de rosca
 
     Aplicação
     ---------
-    plot_donut_chart(df=df, col='categorical_column', label_names=['Classe 1', 'Classe 2'])
+    plot_donut_chart(df=df, col='categorical_column', label_names={1: 'Classe 1', 2: 'Classe 2'})
     """
     
-
-
-    # Retorno dos valores e definição da figura
-    try:
-        values = df[col].value_counts().values
-    except KeyError as e:
-        cat_cols = [col for col, dtype in df.dtypes.items() if dtype == 'object']
-        print(f'Coluna "{col}" não presente na base. Colunas categóricas disponíveis: {cat_cols}')
+    # Validando presença da coluna na base
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
         return
-    
-    # Rótulos de medida para a plotagem
+
+    # Retornando vales e labels para plotagem
+    counts = df[col].value_counts()
+    values = counts.values
+    labels = counts.index
     if 'label_names' in kwargs:
-        label_names = kwargs['label_names']
-        if type(label_names) is dict:
-            try:
-                label_names = df[col].map(label_names).value_counts().index
-            except Exception as e:
-                print(f'Erro ao mapear o dicionário label_names na Series da coluna. Exception: {e}')
-                label_names = df[col].value_counts().index
-    else:
-        label_names = df[col].value_counts().index
-    
-    # Verificando parâmetro de supressão de alguma categoria da análise
-    if 'flag_ruido' in kwargs and kwargs['flag_ruido'] > 0:
-        flag_ruido = kwargs['flag_ruido']
-        values = values[:-flag_ruido]
-        label_names = label_names[:-flag_ruido]
+        try:
+            labels = labels.map(kwargs['label_names'])
+        except Exception as e:
+            print(f'Erro ao mapear o dicionário label_names na coluna {col}. Exception: {e}')
+
+    # Verificando filtro de top categorias na análise
+    if 'top' in kwargs and kwargs['top'] > 0:
+        values = values[:-kwargs['top']]
+        labels = labels[:-kwargs['top']]
     
     # Cores para a plotagem
     color_list = ['darkslateblue', 'crimson', 'lightseagreen', 'lightskyblue', 'lightcoral', 'silver']
-    colors = kwargs['colors'] if 'colors' in kwargs else color_list[:len(label_names)]
+    colors = kwargs['colors'] if 'colors' in kwargs else color_list[:len(labels)]
+
+    # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    circle_radius = kwargs['circle_radius'] if 'circle_radius' in kwargs else 0.8
+    circle_radius_color = kwargs['circle_radius_color'] if 'circle_radius_color' in kwargs else 'white'
 
     # Plotando gráfico de rosca
-    center_circle = plt.Circle((0, 0), circle_radius, color='white')
+    center_circle = plt.Circle((0, 0), circle_radius, color=circle_radius_color)
     fig, ax = plt.subplots(figsize=figsize)
-    wedges, texts, autotexts = ax.pie(values, labels=label_names, colors=colors, startangle=90, autopct=make_autopct(values))
+    wedges, texts, autotexts = ax.pie(values, labels=labels, colors=colors, startangle=90, autopct=make_autopct(values))
     ax.add_artist(center_circle)
 
     # Configurando argumentos do texto central
@@ -165,85 +162,80 @@ def plot_donut_chart(df, col, figsize=(8, 8), circle_radius=0.8, **kwargs):
 
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
-
-        # Retornando diretório e nome da imagem
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_donutchart.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def plot_pie_chart(df, col, figsize=(8, 8), **kwargs):
+def plot_pie_chart(df, col, **kwargs):
     """
-    Função responsável por plotar um gráfico de pizza customizado para uma determinada coluna da base
+    Função responsável por plotar um gráfico de rosca customizado para uma determinada coluna da base
     
     Parâmetros
     ----------
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
     :param col: nome da coluna a ser analisada [type: string]
-    :param figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
     :param **kwargs: parâmetros adicionais da função
-        :arg label_names: lista com labels personalizados para os rótulos [type: list, default=value_counts().index]
-        :arg flag_ruido: índice de filtro para eliminar as n últimas entradas [type: float, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg top: índice de filtro das top categorias a serem plotadas [type: int]
         :arg colors: lista de cores para aplicação na plotagem [type: list]
+        :arg explode: parâmetro para separação da fatia do gráfico [type: tuple, default=(0,)]
+        :arg shadow: presença de sombra nas fatias do gráfico [type: bool, default=True]
         :arg title: título do gráfico [type: string, default=f'Gráfico de Rosca para a Variável ${col}$']
         :arg autotexts_size: dimensão do rótulo do valor numérico do gráfico [type: int, default=14]
-        :arg autotexts_color: cor do rótulo do valor numérico do gráfico [type: int, default='white']
+        :arg autotexts_color: cor do rótulo do valor numérico do gráfico [type: int, default='black]
         :arg texts_size: dimensão do rótulo do label [type: int, default=14]
         :arg texts_color: cor do rótulo do label [type: int, default='black']
         :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
         :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_donutchart.png']
     
-    
     Retorno
     -------
-    Essa função não retorna nenhum parâmetro além da plotagem customizada do gráfico de pizaa
+    Essa função não retorna nenhum parâmetro além da plotagem customizada do gráfico de pizza
 
     Aplicação
     ---------
-    plot_pie_chart(df=df, col='categorical_column', label_names=['Classe 1', 'Classe 2'])
+    plot_pie_chart(df=df, col='categorical_column', label_names={1: 'Classe 1', 2: 'Classe 2'})
     """
     
-    # Retorno dos valores e definição da figura
-    try:
-        values = df[col].value_counts().values
-    except KeyError as e:
-        cat_cols = [col for col, dtype in df.dtypes.items() if dtype == 'object']
-        print(f'Coluna "{col}" não presente na base. Colunas categóricas disponíveis: {cat_cols}')
+    # Validando presença da coluna na base
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
         return
-    
-    # Rótulos de medida para a plotagem
+
+    # Retornando vales e labels para plotagem
+    counts = df[col].value_counts()
+    values = counts.values
+    labels = counts.index
     if 'label_names' in kwargs:
-        label_names = kwargs['label_names']
-        if type(label_names) is dict:
-            try:
-                label_names = df[col].map(label_names).value_counts().index
-            except Exception as e:
-                print(f'Erro ao mapear o dicionário label_names na Series da coluna. Exception: {e}')
-                label_names = df[col].value_counts().index
-    else:
-        label_names = df[col].value_counts().index
-    
-    # Verificando parâmetro de supressão de alguma categoria da análise
-    if 'flag_ruido' in kwargs and kwargs['flag_ruido'] > 0:
-        flag_ruido = kwargs['flag_ruido']
-        values = values[:-flag_ruido]
-        label_names = label_names[:-flag_ruido]
+        try:
+            labels = labels.map(kwargs['label_names'])
+        except Exception as e:
+            print(f'Erro ao mapear o dicionário label_names na coluna {col}. Exception: {e}')
+
+    # Verificando filtro de top categorias na análise
+    if 'top' in kwargs and kwargs['top'] > 0:
+        values = values[:-kwargs['top']]
+        labels = labels[:-kwargs['top']]
     
     # Cores para a plotagem
     color_list = ['darkslateblue', 'crimson', 'lightseagreen', 'lightskyblue', 'lightcoral', 'silver']
-    colors = kwargs['colors'] if 'colors' in kwargs else color_list[:len(label_names)]
+    colors = kwargs['colors'] if 'colors' in kwargs else color_list[:len(labels)]
 
-    # Parâmetros de plotagem do gráfico de pizza
-    explode = kwargs['explode'] if 'explode' in kwargs else (0,) * len(label_names)
+    # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    explode = kwargs['explode'] if 'explode' in kwargs else (0,) * len(labels)
     shadow = kwargs['shadow'] if 'shadow' in kwargs else False
+    
 
-    # Plotando gráfico de pizza
+    # Plotando gráfico de rosca
     fig, ax = plt.subplots(figsize=figsize)
-    wedges, texts, autotexts = ax.pie(values, labels=label_names, colors=colors, autopct=make_autopct(values), 
+    wedges, texts, autotexts = ax.pie(values, labels=labels, colors=colors, autopct=make_autopct(values), 
                                       startangle=90, explode=explode, shadow=shadow)
     
     # Definindo título
-    title = kwargs['title'] if 'title' in kwargs else f'Gráfico de Rosca para a Variável ${col}$'
+    title = kwargs['title'] if 'title' in kwargs else f'Gráfico de Pizza para a Variável ${col}$'
     ax.set_title(title, size=16, color='dimgrey')
 
     # Parâmetros de customização do gráfico gerado
@@ -258,13 +250,11 @@ def plot_pie_chart(df, col, figsize=(8, 8), **kwargs):
 
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
-
-        # Retornando diretório e nome da imagem
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_piechart.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, **kwargs):
+def plot_double_donut_chart(df, col1, col2, **kwargs):
     """
     Função responsável por plotar um gráfico de rosca customizado para uma determinada coluna da base
     
@@ -273,15 +263,14 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
     :param col1: nome da primeira coluna a ser analisada (outer) [type: string]
     :param col1: nome da segunda coluna a ser analisada (inner) [type: string]
-    :param figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
-    :param circle_radius: raio do círculo central do gráfico [type: float, default=0.55]
     :param **kwargs: parâmetros adicionais da função
         :arg label_names_col1: lista com rótulos da primeira coluna [type: list, default=value_counts().index]
         :arg label_names_col2: lista com rótulos da segunda coluna [type: list, default=value_counts().index]
-        :arg flag_ruido: índice de filtro para eliminar as n últimas entradas [type: float, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg circle_radius: raio do círculo central do gráfico [type: float, default=0.55]
         :arg colors: lista de cores para aplicação na plotagem [type: list]
         :arg text: texto central do gráfico de rosca [type: string, default=f'Total: \n{sum(values)}']
-        :arg title: título do gráfico [type: string, default=f'Gráfico de Rosca para a Variável ${col}$']
+        :arg title: título do gráfico [type: string, default=f'Gráfico Duplo de Rosca para ${col1}$ e ${col2}$']
         :arg autotexts_size: dimensão do rótulo do valor numérico do gráfico [type: int, default=14]
         :arg autotexts_color: cor do rótulo do valor numérico do gráfico [type: int, default='black]
         :arg texts_size: dimensão do rótulo do label [type: int, default=14]
@@ -289,8 +278,7 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
         :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
         :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_donutchart.png']
-    
-    
+     
     Retorno
     -------
     Essa função não retorna nenhum parâmetro além da plotagem customizada do gráfico duplo de rosca
@@ -300,17 +288,20 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
     plot_donut_chart(df=df, col1='categorical_column', col2='categorical_column2)
     """
     
-    # Retorno dos valores e definição da figura
-    try:
-        first_layer_donut = df.groupby(col1).count().iloc[:, 0]
-        first_layer_values = first_layer_donut.values
-        second_layer_donut = df.groupby([col1, col2]).count().iloc[:, 0]
-        second_layer_values = second_layer_donut.values
-        col2_index = df.groupby(col2).count().iloc[:, 0].index
-    except KeyError as e:
-        cat_cols = [col for col, dtype in df.dtypes.items() if dtype == 'object']
-        print(f'Coluna "{col}" não presente na base. Colunas categóricas disponíveis: {cat_cols}')
+    # Validando presença da coluna na base
+    if col1 not in df.columns:
+        print(f'Coluna {col1} não presente na base')
         return
+    if col2 not in df.columns:
+        print(f'Coluna {col2} não presente na base')
+        return
+
+    # Retornando valores e labels para as duas camadas do gráfico
+    first_layer_donut = df.groupby(col1).count().iloc[:, 0]
+    first_layer_values = first_layer_donut.values
+    second_layer_donut = df.groupby([col1, col2]).count().iloc[:, 0]
+    second_layer_values = second_layer_donut.values
+    col2_index = df.groupby(col2).count().iloc[:, 0].index
     
     # Criando DataFrame com dados da segunda camada
     second_layer_df = pd.DataFrame(second_layer_donut.index.values)
@@ -318,45 +309,40 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
     second_layer_df['second_index'] = second_layer_df[0].apply(lambda x: x[1])
     second_layer_df['values'] = second_layer_donut.values
 
-    # Retornando labels
+    # Retornando e mapeando labels para a legenda
     if 'label_names_col1' in kwargs:
-        label_names_col1 = kwargs['label_names_col1']
-        if type(kwargs['label_names_col1']) is dict:
-            label_names_col1 = first_layer_donut.index.map(kwargs['label_names_col1'])
+        try:
+            labels_col1 = first_layer_donut.index.map(kwargs['label_names_col1'])
+        except Exception as e:
+            print(f'Erro ao mapear o dicionário label_names_col1 na coluna {col1}. Exception: {e}')
     else:
-        label_names_col1 = first_layer_donut.index
+        labels_col1 = first_layer_donut.index
 
     if 'label_names_col2' in kwargs:
-        label_names_col2 = kwargs['label_names_col2']
-        if type(kwargs['label_names_col2']) is dict:
-            label_names_col2 = second_layer_df['second_index'].map(kwargs['label_names_col2'])
+        try:
+            labels_col2 = second_layer_df['second_index'].map(kwargs['label_names_col2'])
+        except Exception as e:
+            print(f'Erro ao mapear o dicionário label_names_col2 na coluna {col2}. Exception: {e}')
     else:
-        label_names_col2 = second_layer_df['second_index']
-
-
-    """label_names_col1 = kwargs['label_names_col1'] if 'label_names_col1' in kwargs else first_layer_donut.index
-    label_names_col2 = kwargs['label_names_col2'] if 'label_names_col2' in kwargs else second_layer_df['second_index']"""
-    
-    # Verificando parâmetro de supressão de alguma categoria da análise
-    if 'flag_ruido' in kwargs and kwargs['flag_ruido'] > 0:
-        flag_ruido = kwargs['flag_ruido']
-        values = values[:-flag_ruido]
-        label_names = label_names[:-flag_ruido]
+        labels_col2 = second_layer_df['second_index']
     
     # Cores para a plotagem
     color_list = ['darkslateblue', 'crimson', 'lightseagreen', 'silver', 'lightskyblue', 'lightcoral']
     colors1 = kwargs['colors1'] if 'colors1' in kwargs else color_list[:len(label_names_col1)]
     colors2 = kwargs['colors2'] if 'colors2' in kwargs else color_list[-len(col2_index):]
 
+    # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    circle_radius = kwargs['circle_radius'] if 'circle_radius' in kwargs else 0.55
+    circle_radius_color = kwargs['circle_radius_color'] if 'circle_radius_color' in kwargs else 'white'
+
     # Plotando gráfico de rosca
-    center_circle = plt.Circle((0, 0), circle_radius, color='white')
+    center_circle = plt.Circle((0, 0), circle_radius, color=circle_radius_color)
     fig, ax = plt.subplots(figsize=figsize)
-    wedges1, texts1, autotexts1 = ax.pie(first_layer_values, colors=colors1, 
-                                         startangle=90, autopct=make_autopct(first_layer_values),
-                                         pctdistance=1.20)
-    wedges2, texts2, autotexts2 = ax.pie(second_layer_values, radius=0.75, colors=colors2,
-                                         startangle=90, autopct=make_autopct(second_layer_values),
-                                         pctdistance=0.55)
+    wedges1, texts1, autotexts1 = ax.pie(first_layer_values, colors=colors1, startangle=90, 
+                                         autopct=make_autopct(first_layer_values), pctdistance=1.20)
+    wedges2, texts2, autotexts2 = ax.pie(second_layer_values, radius=0.75, colors=colors2, startangle=90, 
+                                         autopct=make_autopct(second_layer_values), pctdistance=0.55)
     ax.add_artist(center_circle)
 
     # Configurando argumentos do texto central
@@ -386,7 +372,7 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
         custom_lines.append(Line2D([0], [0], color=c1, lw=4))
     for c2 in colors2:
         custom_lines.append(Line2D([0], [0], color=c2, lw=4))
-    all_labels = list(label_names_col1) + list(np.unique(label_names_col2))
+    all_labels = list(labels_col1) + list(np.unique(labels_col2))
     ax.legend(custom_lines, labels=all_labels, fontsize=12, loc='upper left')
 
     # Verificando salvamento da imagem
@@ -395,7 +381,7 @@ def plot_double_donut_chart(df, col1, col2, figsize=(8, 8), circle_radius=0.55, 
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col1}_{col2}_donutchart.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs):
+def plot_countplot(df, col, **kwargs):
     """
     Função responsável por plotar um gráfico de barras de volumetrias (countplot)
     
@@ -403,10 +389,11 @@ def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs)
     ----------
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
     :param col: referência de coluna a ser plotada [type: string]
-    :param orientation: horizontal ou vertical [type: string, default='horizontal']
-    :param figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
     :param **kwargs: parâmetros adicionais da função   
         :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
+        :arg orient: horizontal ou vertical [type: string, default='h']
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg order: flag para ordenação dos dados [type: bool, default=True]
         :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
@@ -415,7 +402,7 @@ def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs)
         :arg size_label: tamanho do rótulo [type: int, default=14]
         :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
-        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_donutchart.png']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
     
     Retorno
     -------
@@ -439,23 +426,19 @@ def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs)
         df = df[df[col].isin(top_categories)]
         
     # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
     hue = kwargs['hue'] if 'hue' in kwargs else None
     palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
-    
-    if 'order' in kwargs and bool(kwargs['order']):
-        order = df[col].value_counts().index
-    else:
-        order = None
+    order = df[col].value_counts().index if 'order' in kwargs and bool(kwargs['order']) else None
+    orient = kwargs['orient'] if 'orient' in kwargs and kwargs['orient'] in ['h', 'v'] else 'h'
         
     # Definindo orientação
-    if orientation == 'horizontal':
-        x = col
-        y = None
-    elif orientation == 'vertical':
+    if orient == 'v':
         x = None
         y = col
     else:
-        print('Parâmetro orientation definido incorretamente. Opções possíveis: "horizontal", "vertical"')
+        x = col
+        y = None
     
     # Criando figura e aplicando countplot
     fig, ax = plt.subplots(figsize=figsize)
@@ -470,36 +453,393 @@ def plot_countplot(df, col, orientation='horizontal', figsize=(10, 7), **kwargs)
     # Formatando plotagem
     ax.set_title(title, size=size_title, pad=20)
     format_spines(ax, right_border=False)
-    if label_names is not None:
-        if x is not None:
-            try:
-                ax.set_xticklabels(label_names)
-            except ValueError as ve:
-                print(f'As entradas categóricas e os labels definidos possuem dimensões diferentes. Rótulos de eixo não aplicados')
-        else:
-            try:
-                ax.set_yticklabels(label_names)
-            except ValueError as ve:
-                print(f'As entradas categóricas e os labels definidos possuem dimensões diferentes. Rótulos de eixo não aplicados')
 
-    # Inserindo rótulo de percentual
+    # Inserindo rótulo de percentual e modificando labels
     ncount = len(df)
     if x:
+        # Rótulos
         for p in ax.patches:
             x = p.get_bbox().get_points()[:, 0]
             y = p.get_bbox().get_points()[1, 1]
-            ax.annotate('{}\n{:.1f}%'.format(int(y), 100. * y / ncount), (x.mean(), y), 
-                        ha='center', va='bottom', size=size_labels)
+            try:
+                ax.annotate('{}\n{:.1f}%'.format(int(y), 100. * y / ncount), (x.mean(), y), 
+                            ha='center', va='bottom', size=size_labels)
+            except ValueError as ve: # Erro por divisão por zero em entradas inexistentes pela quebra
+                continue
+        
+        # Labels
+        if 'label_names' in kwargs:
+            labels_old = ax.get_xticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+                
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_xticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
     else:
+        # Rótulos
         for p in ax.patches:
             x = p.get_bbox().get_points()[1, 0]
             y = p.get_bbox().get_points()[:, 1]
-            ax.annotate('{} ({:.1f}%)'.format(int(x), 100. * x / ncount), (x, y.mean()), 
-                        va='center', size=size_labels)
+            try:
+                ax.annotate('{} ({:.1f}%)'.format(int(x), 100. * x / ncount), (x, y.mean()), 
+                            va='center', size=size_labels)
+            except ValueError as ve: # Erro por divisão por zero em entradas inexistentes pela quebra
+                continue
+
+        # Labels
+        if 'label_names' in kwargs:
+            labels_old = ax.get_yticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+                
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_yticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
 
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_countplot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def plot_pct_countplot(df, col, hue, **kwargs):
+    """
+    Função responsável por plotar um gráfico de barras agrupadas com percentuais representativos
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param col: referência de coluna a ser plotada [type: string]
+    :param hue: parâmetro hue para quebra de plotagem [type: string]
+    :param **kwargs: parâmetros adicionais da função   
+        :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
+        :arg orient: horizontal ou vertical [type: string, default='h']
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_pct_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de uma plotagem de representatividade por grupo
+
+    Aplicação
+    ---------
+    plot_countplot(df=df, col='column')
+    """
+    
+    # Validando presença da coluna na base
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
+        return
+    
+    # Validando presença da coluna hue na base
+    if hue not in df.columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+    
+    # Retornando parâmetros de filtro de colunas
+    top = kwargs['top'] if 'top' in kwargs else -1
+    if top > 0:
+        cat_count = df[col].value_counts()
+        top_categories = cat_count[:top].index
+        df = df[df[col].isin(top_categories)]
+        
+    # Retornando parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    kind = 'bar' if 'orient' in kwargs and kwargs['orient'] == 'v' else 'barh'
+    title = kwargs['title'] if 'title' in kwargs else f'Representatividade de {hue} para a coluna {col}'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    
+    # Realizando quebra agrupada das colunas
+    fig, ax = plt.subplots(figsize=figsize)
+    col_to_hue = pd.crosstab(df[col], df[hue])
+    col_to_hue.div(col_to_hue.sum(1).astype(float), axis=0).plot(kind=kind, stacked=True, ax=ax, 
+                                                                 colormap=palette)
+    
+    # Customizando gráfico
+    ax.set_title(title, size=size_title, pad=20)
+
+    # Customizando rótulos
+    if kind == 'barh':
+        if 'label_names' in kwargs:
+            labels_old = ax.get_xticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+                
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_xticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+    else:
+        if 'label_names' in kwargs:
+            labels_old = ax.get_yticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+                
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_yticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}_{hue}_pctcountplot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
+    """
+    Função responsável por plotagem de gráficos de agregação em barras
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param group_col: coluna pivot de agrupamento [type: string]
+    :param value_col: coluna com os valores a serem agregados [type: string]
+    :param aggreg: informação da agregação utilizada na análise [type: string]
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
+        :arg orient: horizontal ou vertical [type: string, default='h']
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg size_label: t    hue = kwargs['hue'] if 'hue' in kwargs and kwargs['hue'] is not Noneamanho do rótulo [type: int, default=14]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
+
+    Aplicação
+    ---------
+    plot_aggregation(df=df, group_col='group', value_col='value', aggreg='agg')
+    """
+    
+    # Verificando presença das colunas na base
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    df_columns = df.columns
+    if group_col not in df_columns:
+        print(f'Coluna {group_col} não presente na base')
+        return
+    if value_col not in df_columns:
+        print(f'Coluna {value_col} não presente na base')
+        return
+    if hue is not None and hue not in df_columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+
+    # Aplicando agregação configurada
+    try:
+        if hue is not None:
+            df_group = df.groupby(by=[group_col, hue], as_index=False).agg({value_col: aggreg})
+        else:
+            df_group = df.groupby(by=group_col, as_index=False).agg({value_col: aggreg})
+        df_group.sort_values(by=value_col, ascending=False, inplace=True)
+    except AttributeError as ae:
+        print(f'Erro ao aplicar agregação com {aggreg}. Excepion lançada: {ae}')
+        
+    # Filtrando entradas
+    if 'top' in kwargs and kwargs['top'] > 0:
+        df_group = df_group[:kwargs['top']]
+        
+    # Retornando parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    
+    # Rótulos de medida para a plotagem
+    if 'label_names' in kwargs:
+        df_group[group_col] = df_group[group_col].map(kwargs['label_names'])
+        
+    # Orientação da plotagem
+    orient = kwargs['orient'] if 'orient' in kwargs and kwargs['orient'] in ['h', 'v'] else 'v'
+    if orient == 'v':
+        x = group_col
+        y = value_col
+    else:
+        x = value_col
+        y = group_col
+        
+    # Retornando parâmetros de formatação da plotagem
+    title = kwargs['title'] if 'title' in kwargs else f'Agrupamento de {group_col} por {aggreg} de {value_col}'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    size_labels = kwargs['size_labels'] if 'size_labels' in kwargs else 14
+    
+    # Construindo plotagem
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.barplot(x=x, y=y, data=df_group, hue=hue, palette=palette, ci=None, orient=orient)
+    
+    # Formatando plotagem
+    ax.set_title(title, size=size_title, pad=20)
+    format_spines(ax, right_border=False)
+
+    # Inserindo rótulo de percentual
+    if orient == 'h':
+        AnnotateBars(n_dec=1, font_size=size_labels, color='black').horizontal(ax)
+    else:
+        AnnotateBars(n_dec=1, font_size=size_labels, color='black').vertical(ax)
+            
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{value_col}{hue}_{aggreg}plot_by{group_col}.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def plot_distplot(df, col, kind='dist', **kwargs):
+    """
+    Função responsável por plotagem de variáveis contínuas em formato de distribuição
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param col: referência de coluna, de preferência numérica, a ser analisada [type: string]
+    :param kind: tipo de plotagem de distribuição [type: string, default='dist']
+        *opções: ['dist', 'kde', 'box', 'boxen', 'strip']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
+
+    Aplicação
+    ---------
+    plot_aggregation(df=df, group_col='group', value_col='value', aggreg='agg')
+    """
+
+    # Verificando presença das colunas na base
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    if col not in df.columns:
+        print(f'Coluna {col} não presente na base')
+        return
+    if hue is not None and hue not in df.columns:
+        print(f'Coluna {hue} não presente na base')
+        return
+    
+    # Validando tipo de plotagem
+    possible_kinds = ['dist', 'kde', 'box', 'boxen', 'strip']
+    if kind not in possible_kinds:
+        print(f'Parâmetro kind inválido. Opções possívels: {possible_kinds}')
+
+    # Parâmetros de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    hist = kwargs['hist'] if 'hist' in kwargs else False
+    kde = kwargs['kde'] if 'kde' in kwargs else True
+    rug = kwargs['rug'] if 'rug' in kwargs else False
+    shade = kwargs['shade'] if 'shade' in kwargs else True
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    title = kwargs['title'] if 'title' in kwargs else f'{kind.title()}plot para a Variável {col}'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+
+    sns.set(style='white', palette='muted', color_codes=True)
+
+    # Construindo plotagem
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    # Distplot
+    if kind == 'dist':
+        if hue is not None:
+            for cat in df[hue].value_counts().index:
+                sns.distplot(df[df[hue]==cat][col], ax=ax, hist=hist, kde=kde, rug=rug, label=cat)
+        else:
+            sns.distplot(df[col], ax=ax, hist=hist, kde=kde, rug=rug)
+    # Kdeplot        
+    elif kind == 'kde':
+        if hue is not None:
+            for cat in df[hue].value_counts().index:
+                sns.kdeplot(df[df[hue]==cat][col], ax=ax, shade=shade, label=cat)
+        else:
+            sns.kdeplot(df[col], ax=ax, shade=shade)
+    # Boxplot
+    elif kind == 'box':
+        if hue is not None:
+            sns.boxplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.boxplot(y=col, data=df, ax=ax, palette=palette)
+    # Boxenplot
+    elif kind == 'boxen':
+        if hue is not None:
+            sns.boxenplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.boxenplot(y=col, data=df, ax=ax, palette=palette)
+    # Stripplot
+    elif kind == 'strip':
+        if hue is not None:
+            sns.stripplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+        else:
+            sns.stripplot(y=col, data=df, ax=ax, palette=palette)
+            
+    # Modificando labels
+    if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
+        labels_old = ax.get_xticklabels()
+        labels = [l.get_text() for l in labels_old]
+        try:
+            # Convertendo textos antes do mapeamento
+            if type(list(kwargs['label_names'].keys())[0]) is int:
+                labels = [int(l) for l in labels]
+            elif type(list(kwargs['label_names'].keys())[0]) is float:
+                labels = [float(l) for l in labels]
+
+            # Mapeando rótulos customizados
+            labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+            ax.set_xticklabels(labels)
+        except Exception as e:
+            print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+            
+    # Customizando gráfico
+    format_spines(ax=ax, right_border=False)
+    ax.set_title(title, size=size_title)
+    if kind in ['dist', 'kde'] and hue is not None:
+        ax.legend(title=hue)
+        
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}{hue}_{kind}plot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 

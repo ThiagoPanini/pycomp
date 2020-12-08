@@ -21,33 +21,25 @@
 Literalmente, uma fábrica de componentes em Python criada para auxiliar implementações, automações e até treinamento de modelos de Machine Learning! O objetivo desse pacote é propor uma forma mais fácil de se trabalhar com Python a partir do fornecimento de componentes prontos (funções e classes) para uma série de atividades rotineiras e exploratórias.
 
 ## Features
-<sub>Componentes marcados com * não foram homologadas
-- :file_folder: __fs__: o módulo fs (file system) foi desenvolvido para auxiliar o manuseio de arquivos em sistemas operacionais, como a validação da presença de um arquivo em um diretório, validação de atualização/modificação de um arquivo, cópia de um arquivo de uma origem para um destino, entre outros. Entre os componentes já implementados, é possível listar:
-  - _arquivos.py*_
-  
-- :pencil: __log__: módulo auxiliar responsável por facilitar a geração, configuração e o armazenamento de logs de execução dos demais módulos do pacote.
-  - _log_config.py*_
-  
-- :robot: __ml__: o módulo ml (machine learning) contém os componentes apropriados para a construção e aplicação de Pipelines de pré-processamento de dados, bem como módulos responsáveis por automatizar o treinamento e avaliação de modelos de aprendizado de máquina. Através dos módulos _transformers_ e _trainer_, é possível construir um fluxo inteligente de recebimento, transformação e treinamento de modelos.
-  - _transformers.py*_
-  - _trainer.py*_
-  
-- :bar_chart: __viz__: o módulo viz tem por objetivo proporcionar componentes prontos para geração e customização de gráficos em python utilizando as bibliotecas matplotlib e seaborn. As funções contidos neste módulo trazem códigos consolidados para geração de insights em bases de dados a partir de análises gráficas personalizadas. Entre os componentes, é possível listar:
-  - _formatador.py*_
-  - _insights.py*_
-  
-- :thought_balloon: __Em andamento...__
 
-A fábrica está a todo vapor! Sua capacidade de produção e seu leque de fornecimento pode ser resumido em:
+- :file_folder: __fs__: módulo responsável por auxiliar o manuseio de arquivos em sistemas operacionais. Em seu conteúdo, é possível encontrar funções úteis para a cópia de arquivos de um diretório origem para um diretório destino, além de funções utilizadas para a validação de presença e atualização de arquivos, entre outras.
 
-| Tópico                     | Módulo                   | Funções           | Classes         | Componentes Totais  | Homologados     |
+- :pencil: __log__: módulo com o objetivo de facilitar a geração, configuração e o armazenamento de logs de execução dos demais módulos do pacote.
+  
+- :robot: __ml__: provavelmente o mais completo do pacote, o módulo ml (machine learning) contém componentes apropriados para a construção e aplicação de pipelines de pré-processamento de dados, além de blocos de código responsáveis por automatizar o treinamento e avaliação de modelos de aprendizado de máquina. 
+  
+- :bar_chart: __viz__: módulo responsável por propor componentes prontos para geração e customização de gráficos utilizando as bibliotecas matplotlib e seaborn. As funções contidas neste módulo trazem códigos consolidados para geração de insights em bases de dados a partir de análises gráficas personalizadas. 
+
+A fábrica está a todo vapor! Com mais de 2 mil linhas de código, sua capacidade de produção e seu leque de fornecimento pode ser resumido em:
+
+| Tópico                     | Módulo                   | Funções           | Classes         | Componentes Totais  |Linhas de Código |
 | -------------------------- | :---------------:        | :---------------: | :-------------: | :-----------------: | :-------------: |
-| File System                | `pycomp.fs.arquivos`     |         4         |        0        |        4            |        0        |
-| Logs                       | `pycomp.log.log_config`  |         1         |        0        |        1            |        0        |
-| Machine Learning           | `pycomp.ml.transformers` |         0         |        9        |        9            |        0        |
-|                            | `pycomp.ml.trainer`      |         23        |        1        |        24           |        0        |
-| Viz                        | `pycomp.viz.formatador`  |         1         |        1        |        2            |        0        |
-|                            | `pycomp.viz.insights`    |         5         |        0        |        5            |        0        |
+| File System                | `pycomp.fs.arquivos`     |         4         |        0        |        4            |      ~300       |
+| Logs                       | `pycomp.log.log_config`  |         1         |        0        |        1            |       ~70       |
+| Machine Learning           | `pycomp.ml.transformers` |         0         |        9        |        9            |      ~400       |
+|                            | `pycomp.ml.trainer`      |        25         |        1        |       26            |     ~1500       |
+| Viz                        | `pycomp.viz.formatador`  |         2         |        1        |        3            |      ~100       |
+|                            | `pycomp.viz.insights`    |         5         |        0        |        5            |      ~700       |
 
 
 ## Instalação
@@ -257,15 +249,22 @@ output/
 ```
 
 ## Próximos Passos
-- [x] Inserir função para plotagem de matriz de confusão (`trainer.py`)
-- [x] Inserir função para plotagem de curva ROC (`trainer.py`)
-- [x] Inserir função para plotagem de curva de distribuição de scores (`trainer.py`)
-- [x] Inserir função para plotagem de curva de aprendizado (`trainer.py`)
-- [x] Inserir função para análise shap dos modelos treinados (`trainer.py`)
 - [x] Consolidar função `visual_analysis()` para gerar todas as análises acima (`trainer.py`)
+- [x] Consturção de funções para análise categórica em processo de EDA (`insights.py`)
+- [x] Criação de guideline para utilização do módulo `transformers.py`
+- [x] Criação de guideline para utilização do módulo `trainer.py`
+- [x] Criação de guideline para utilização do módulo `insights.py`
 - [ ] Brainstorming para pipelines automáticos de prep + treino (`transformers.py + trainer.py`)
 - [ ] Inserir GIF de demonstração do projeto
 - [ ] Finalização do módulo insights para plotagens gráficas e aplicação de EDA em bases de dados (`insights.py`)
+
+
+## Guidelines
+De modo a propor uma maior democratização do pacote `pycomp`, foram construídos alguns "notebooks-guidelines" em espécies de demonstração das principais aplicações dos módulos `pycomp` em situações prática de uso. Assim, na pastas `guidelines/` do projeto no Github, é possível encontrar diferentes arquivos `.ipynb` contendo:
+
+- `insights_guideline.ipynb`: aplicação do módulo _insights.py_ para a construção de plotagens gráficos dentro de um processo de exploração de uma base de dados em caráter investigativo, analisando os dados e propondo insights para possíveis problemas de negócio.
+- `transformers_guideline.ipynb`: em complemento ao módulo _insights.py_, o módulo _transformers.py_ atua na continuação na cadeia de desenvolvimento de uma solução completa em ciência de dados. Neste notebook explicativo, o objetivo é construir um pipeline completo de transformação de uma base de dados lida.
+- `trainer_guideline.ipynb`: por fim, finalizando o desenvolvimento da solução, o notebook explicativo para o módulo _trainer.py_ atua de modo a evidenciar um exemplo prático de treinamento e avaliação de um modelo preditivo em uma base já preparada a partir de um pipeline construído previamente com as ferramentas do módulo _transformers.py_
 
 
 ## Referências
