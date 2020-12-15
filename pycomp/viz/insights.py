@@ -724,7 +724,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
 
 def plot_distplot(df, col, kind='dist', **kwargs):
     """
-    Função responsável por plotagem de variáveis contínuas em formato de distribuição
+    Função responsável pela plotagem de variáveis contínuas em formato de distribuição
     
     Parâmetros
     ----------
@@ -749,7 +749,7 @@ def plot_distplot(df, col, kind='dist', **kwargs):
 
     Aplicação
     ---------
-    plot_aggregation(df=df, group_col='group', value_col='value', aggreg='agg')
+    plot_distplot(df=df, col='column_name')
     """
 
     # Verificando presença das colunas na base
@@ -843,3 +843,157 @@ def plot_distplot(df, col, kind='dist', **kwargs):
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}{hue}_{kind}plot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
+def plot_corr_matrix(df, corr_col, corr='positive', **kwargs):
+    """
+    Função responsável por analisar correlação entre variáveis numéricas de uma base
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param corr_col: referência de coluna alvo da correlação analisada [type: string]
+    :param corr: tipo de correlação (positiva ou negativa) [type: string, default='positive']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='YlGnBu' ou 'magma']
+        :arg n_vars: quantidade de variáveis utilizadas na análise [type: int, default=10]
+        :arg fmt: formato dos números/labels da matriz [type: string, default='.2f']
+        :arg cbar: flag para plotagem da barra lateral de cores [type: bool, default=True]
+        :arg annot: flag para anotação dos labels na matriz [type: bool, default=True]
+        :arg square: flag para redimensionamento da matriz [type: bool, default=True]
+        :arg title: título do gráfico [type: string, default=f'Análise de correlação de variáveis']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além da matriz de correlação especificada
+
+    Aplicação
+    ---------
+    plot_corr_matrix(df=df, corr_col='target')
+    """
+    
+    # Criando matriz de correlação para a base de dados
+    corr_mx = df.corr()
+    
+    # Retornando parâmetro de filtro de colunas
+    num_features = [col for col, dtype in df.dtypes.items() if dtype != 'object']
+    n_vars = kwargs['n_vars'] if 'n_vars' in kwargs else df[num_features].shape[1]
+
+    # Verificando tipo de correlação e aplicando modificações
+    if corr == 'positive':
+        # Retornando top colunas com correlação positiva em relação a corr_col
+        corr_cols = list(corr_mx.nlargest(n_vars+1, corr_col)[corr_col].index)
+        pos_title = f'Top {n_vars} Features - Correlação Positiva \ncom a Variável ${corr_col}$'
+        pos_cmap = 'YlGnBu'
+        
+        # Associando parâmetros gerais da função
+        title = kwargs['title'] if 'title' in kwargs else pos_title
+        cmap = kwargs['cmap'] if 'cmap' in kwargs else pos_cmap
+        
+    elif corr == 'negative':
+        # Retornando top colunas com correlação negativa em relação a corr_col
+        corr_cols = list(corr_mx.nsmallest(n_vars+1, corr_col)[corr_col].index)
+        corr_cols = [corr_col] + corr_cols[:-1]
+        neg_title = f'Top {n_vars} Features - Correlação Negativa \ncom a Variável ${corr_col}$'
+        neg_cmap = 'magma'
+        
+        # Associando parâmetros gerais da função
+        title = kwargs['title'] if 'title' in kwargs else neg_title
+        cmap = kwargs['cmap'] if 'cmap' in kwargs else neg_cmap
+        
+    # Construindo array de correlação
+    corr_data = np.corrcoef(df[corr_cols].values.T)
+
+    # Retornando parâmetros gerais de plotagem
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 10)
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    cbar = kwargs['cbar'] if 'cbar' in kwargs else True
+    annot = kwargs['annot'] if 'annot' in kwargs else True
+    square = kwargs['square'] if 'square' in kwargs else True
+    fmt = kwargs['fmt'] if 'fmt' in kwargs else '.2f'
+    
+    # Plotando matriz através de um heatmap
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.heatmap(corr_data, ax=ax, cbar=cbar, annot=annot, square=square, fmt=fmt, cmap=cmap,
+                yticklabels=corr_cols, xticklabels=corr_cols)
+    ax.set_title(title, size=size_title, color='black', pad=20)
+
+def data_overview(df, **kwargs):
+    """
+    Análise geral em uma base de dados, retornando um DataFrame como resultado
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na análise [type: pd.DataFrame]
+    :param **kwargs: argumentos adicionais da função
+        :arg corr: flag para análise de correlação [type: bool, default=False]
+        :arg corr_method: método de correlação utilizada ('pearson', 'kendall', 'spearman')
+        :arg target: variável target utilizada na correlação [type: string, default=None]
+        :arg thresh_corr: limiar para filtro corr >= threshold [type: float, default=None]
+        :arg thresh_null: limiar para filtro qtd_null >= threshold [type: float, default=0]
+        :arg thresh_pct_null: limiar para filtro pct_null >= threshold [type: float, default=0]
+        :arg sort: coluna de ordenação da base final [type: string, defaul='qtd_null']
+        :arg ascending: flag de ordenação ascendente [type: bool, default=False]
+        
+    Retorno
+    -------
+    :return df_overview: DataFrame com análise das colunas das base
+    
+    Aplicação
+    ---------
+    df_overview = data_overview(df=df, corr=True, target='target')
+    """
+    
+    # Retornando dados nulos
+    df_null = pd.DataFrame(df.isnull().sum()).reset_index()
+    df_null.columns = ['feature', 'qtd_null']
+    df_null['pct_null'] = df_null['qtd_null'] / len(df)
+    
+    # Retornando tipo primitivo e quantidade de entradas dos atributos categóricos
+    df_null['dtype'] = df_null['feature'].apply(lambda x: df[x].dtype)
+    df_null['qtd_cat'] = [len(df[col].value_counts()) if df[col].dtype == 'object' else 0 for col in 
+                          df_null['feature'].values]
+    
+    # Retornando parâmetros adicionais da função
+    corr = kwargs['corr'] if 'corr' in kwargs else False
+    corr_method = kwargs['corr_method'] if 'corr_method' in kwargs else 'pearson'
+    target = kwargs['target'] if 'target' in kwargs else None
+    thresh_corr = kwargs['thresh_corr'] if 'thresh_corr' in kwargs else None
+    thresh_null = kwargs['thresh_null'] if 'thresh_null' in kwargs else 0
+    thresh_pct_null = kwargs['thresh_pct_null'] if 'thresh_pct_null' in kwargs else 0   
+    sort = kwargs['sort'] if 'sort' in kwargs else 'qtd_null'
+    ascending = kwargs['sort_ascending'] if 'sort_ascending' in kwargs else False
+    
+    # Verificando análise de correlação
+    if corr and target is None:
+        print(f'Ao definir "correlation=True" é preciso também definir o argumento "target"')
+    
+    if corr and target is not None:
+        # Extraindo correlação especificada
+        target_corr = pd.DataFrame(df.corr(method=corr_method)[target])
+        target_corr = target_corr.reset_index()
+        target_corr.columns = ['feature', f'target_{corr_method}_corr']
+        
+        # Aplicando join
+        df_overview = df_null.merge(target_corr, how='left', on='feature')
+        if thresh_corr is not None:
+            df_overview = df_overview[df_overview[f'target_{corr_method}_corr'] > thresh_corr]
+            
+    else:
+        # Análise de correlação não será aplicada
+        df_overview = df_null
+        
+    # Filtrando dados nulos
+    df_overview = df_overview.query('pct_null >= @thresh_null')
+    df_overview = df_overview.query('qtd_null >= @thresh_pct_null')
+    
+    # Ordenando base
+    df_overview.sort_values(by=sort, ascending=ascending, inplace=True)
+    df_overview.reset_index(drop=True, inplace=True)
+    
+    return df_overview
+
+    
