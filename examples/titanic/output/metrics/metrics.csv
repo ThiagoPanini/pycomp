@@ -1,0 +1,4 @@
+model,approach,acc,precision,recall,f1,auc,total_time,anomesdia_datetime
+LogisticRegression,Treino 5 K-folds,0.7654,0.7223,0.702,0.711,0.8365,0.229,2020-12-23 13:55:00.155103
+DecisionTrees,Treino 5 K-folds,0.7872,0.768,0.6926,0.7268,0.8292,0.129,2020-12-23 13:55:00.155103
+RandomForest,Treino 5 K-folds,0.791,0.772,0.7051,0.7341,0.8452,12.517,2020-12-23 13:55:00.155103
