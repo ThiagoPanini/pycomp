@@ -232,6 +232,8 @@ class SplitDados(BaseEstimator, TransformerMixin):
 ---------------------------------------------------
 """
 
+from sklearn.base import BaseEstimator, TransformerMixin
+
 class DummiesEncoding(BaseEstimator, TransformerMixin):
     """
     Classe responsável por aplicar o processo de encoding em dados categóricos utilizando o método
@@ -253,8 +255,9 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
     X_encoded = encoder.fit_transform(df[cat_features])
     """
 
-    def __init__(self, dummy_na=True):
+    def __init__(self, dummy_na=True, cat_features_ori=None):
         self.dummy_na = dummy_na
+        self.cat_features_ori = cat_features_ori
 
     def fit(self, X, y=None):
         return self
@@ -262,7 +265,15 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
 
         # Salvando features em um atributo da classe
-        self.cat_features_ori = list(X.columns)
+        if self.cat_features_ori is None:
+            try:
+                self.cat_features_ori = list(X.columns)
+            except AttributeError as ae:
+                print(f'Impossível retornar colunas de um objeto do tipo numpy array. Utilize o atributo "cat_features_ori" da classe')
+                print(f'Exception lançada: {e}')
+                return
+        else:
+            X = pd.DataFrame(X, columns=self.cat_features_ori)
 
         # Aplicando encoding
         X_cat_dum = pd.get_dummies(X, dummy_na=self.dummy_na)
