@@ -37,17 +37,17 @@ reqs = [str(ir.req) for ir in install_reqs]"""
 # Criando setup
 setup(
     name='pycomp',
-    version='0.1.8',
+    version='0.1.12',
     author='Thiago Panini',
     author_email='thipanini94@gmail.com',
     packages=find_packages(),
     install_requires=[
-        'numpy==1.19.3',
-        'pandas==1.1.3',
-        'joblib==0.17.0',
+        'numpy==1.18.5',
+        'pandas==1.1.5',
+        'joblib==0.14.1',
         'scikit-learn==0.23.2',
-        'matplotlib==3.3.2',
-        'seaborn==0.11.0',
+        'matplotlib==3.2.1',
+        'seaborn==0.10.0',
         'shap==0.37.0'
     ],
     license='MIT',
