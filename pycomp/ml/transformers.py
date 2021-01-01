@@ -417,7 +417,7 @@ class ConsumoModelo(BaseEstimator, TransformerMixin):
     
     def __init__(self, model, features):
         self.model = model
-        self.features = MODEL_FEATURES
+        self.features = features
         
     def fit(self, X):
         return self
