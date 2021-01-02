@@ -737,7 +737,7 @@ def plot_distplot(df, col, kind='dist', **kwargs):
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
-        :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
+        :arg title: título do gráfico [type: string, default=f'{kind}plot para a Variável {col}']
         :arg size_title: tamanho do título [type: int, default=16]
         :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
         :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
@@ -996,4 +996,136 @@ def data_overview(df, **kwargs):
     
     return df_overview
 
+def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
+    """
+    Função responsável pela plotagem de análise contínua para múltiplas variáveis
     
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param columns: lista de colunas a serem utilizadas na análise [type: list]
+    :param n_cols: número de colunas configuradas na figura [type: int, default=3]
+    :param kind: tipo de plotagem de distribuição [type: string, default='dist']
+        *opções: ['dist', 'kde', 'box', 'boxen', 'strip']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg color: cor da linha para distplot e kdeplot [type: string, default='darkslateblue']
+        :arg title: título do gráfico [type: string, default=f'{kind}plot para a Variável {col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
+
+    Aplicação
+    ---------
+    plot_distplot(df=df, col='column_name')
+    """
+    
+    # Validando tipo de plotagem
+    possible_kinds = ['dist', 'kde', 'box', 'boxen', 'strip']
+    if kind not in possible_kinds:
+        print(f'Parâmetro kind inválido. Opções possívels: {possible_kinds}')
+        return
+    
+    # Calculando parâmetros da figura de plotagem
+    n_rows = ceil(len(columns) / n_cols)
+    figsize = (17, n_rows * 5)
+    i, j = 0, 0
+    
+    # Parâmetros adicionais de plotagem
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    hist = kwargs['hist'] if 'hist' in kwargs else True
+    kde = kwargs['kde'] if 'kde' in kwargs else True
+    rug = kwargs['rug'] if 'rug' in kwargs else False
+    shade = kwargs['shade'] if 'shade' in kwargs else True
+    color = kwargs['color'] if 'color' in kwargs else 'darkslateblue'
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    
+    # Criando figura e iterando sobre colunas da lista
+    fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
+    for col in columns:
+        ax = axs[i, j]
+        
+        # Distplot
+        if kind == 'dist':
+            if hue is not None:
+                for cat in df[hue].value_counts().index:
+                    sns.distplot(df[df[hue]==cat][col], ax=ax, hist=hist, kde=kde, rug=rug, label=cat)
+            else:
+                sns.distplot(df[col], ax=ax, hist=hist, kde=kde, rug=rug, color=color)
+                
+        # Kdeplot        
+        elif kind == 'kde':
+            if hue is not None:
+                for cat in df[hue].value_counts().index:
+                    sns.kdeplot(df[df[hue]==cat][col], ax=ax, shade=shade, label=cat)
+            else:
+                sns.kdeplot(df[col], ax=ax, shade=shade, color=color)
+                
+        # Boxplot
+        elif kind == 'box':
+            if hue is not None:
+                sns.boxplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.boxplot(y=col, data=df, ax=ax, palette=palette)
+                
+        # Boxenplot
+        elif kind == 'boxen':
+            if hue is not None:
+                sns.boxenplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.boxenplot(y=col, data=df, ax=ax, palette=palette)
+                
+        # Stripplot
+        elif kind == 'strip':
+            if hue is not None:
+                sns.stripplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.stripplot(y=col, data=df, ax=ax, palette=palette)
+        
+        # Incrementando índices
+        j += 1
+        if j >= n_cols:
+            j = 0
+            i += 1
+        
+        # Modificando labels
+        if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
+            labels_old = ax.get_xticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_xticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+        
+        # Personalizando plotagem
+        format_spines(ax, right_border=False)
+        plt.tight_layout()
+        title = kwargs['title'] if 'title' in kwargs else f'{kind.title()}plot para a variável {col}'
+        ax.set_title(title, size=size_title)
+        if kind in ['dist', 'kde'] and hue is not None:
+            ax.legend(title=hue)
+
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'multiple_{kind}plot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+        
