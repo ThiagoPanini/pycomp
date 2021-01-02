@@ -1651,3 +1651,64 @@ def plot_feature_score_dist(data, feature, model, figsize=(16, 8), kind='boxplot
     # Validando salvamento da figura
     if save:
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def cross_val_performance(model, X, y, cv=5):
+    """
+    Função responsável por calcular as principais métricas de um modelo de classificação
+    utilizando validação cruzada
+    
+    Parâmetros
+    ----------
+    :param model: estimator do modelo preditivo [type: estimator]
+    :param X: dados de entrada do modelo [type: np.array]
+    :param y: array de target do modelo [type: np.array]
+    :param cv: número de k-folds utilizado na validação cruzada [type: int, default=5]
+        
+    Retorno
+    -------
+    :return df_performance: DataFrame contendo as principais métricas de classificação [type: pd.DataFrame]
+    
+    Aplicação
+    ---------
+    results = cross_val_performance(model=model, X=X, y=y)
+    """
+
+    # Computing metrics using cross validation
+    t0 = time.time()
+    accuracy = cross_val_score(estimator, X, y, cv=cv, scoring='accuracy').mean()
+    precision = cross_val_score(estimator, X, y, cv=cv, scoring='precision').mean()
+    recall = cross_val_score(estimator, X, y, cv=cv, scoring='recall').mean()
+    f1 = cross_val_score(estimator, X, y, cv=cv, scoring='f1').mean()
+
+    # Probas for calculating AUC
+    try:
+        y_scores = cross_val_predict(estimator, X, y, cv=cv, method='decision_function')
+    except:
+        # Tree based models don't have 'decision_function()' method, but 'predict_proba()'
+        y_probas = cross_val_predict(estimator, X, y, cv=cv, method='predict_proba')
+        y_scores = y_probas[:, 1]
+    auc = roc_auc_score(y, y_scores)
+
+    # Creating a DataFrame with metrics
+    t1 = time.time()
+    delta_time = t1 - t0
+    train_performance = {}
+    train_performance['model'] = estimator.__class__.__name__
+    train_performance['approach'] = 'Final Model'
+    train_performance['acc'] = round(accuracy, 4)
+    train_performance['precision'] = round(precision, 4)
+    train_performance['recall'] = round(recall, 4)
+    train_performance['f1'] = round(f1, 4)
+    train_performance['auc'] = round(auc, 4)
+    train_performance['total_time'] = round(delta_time, 3)
+    df_performance = pd.DataFrame(train_performance, index=train_performance.keys()).reset_index(drop=True).loc[:0, :]
+
+    # Adding information of measuring and execution time
+    cols_performance = list(df_performance.columns)
+    df_performance['anomesdia'] = datetime.now().strftime('%Y%m%d')
+    df_performance['anomesdia_datetime'] = datetime.now()
+    df_performance = df_performance.loc[:, ['anomesdia', 'anomesdia_datetime'] + cols_performance]
+
+    return df_performance
+
+    
