@@ -1570,7 +1570,7 @@ def save_fig(fig, output_path, img_name, tight_layout=True, dpi=300):
     except Exception as e:
         logger.error(f'Erro ao salvar imagem. Exception lançada: {e}')
 
-def plot_feature_score_dist(data, feature, model, figsize=(16, 8), kind='boxplot', bin_range=.20, palette='magma',
+def clf_plot_feature_score_dist(data, feature, model, figsize=(16, 8), kind='boxplot', bin_range=.20, palette='magma',
                             save=True, output_path='output/imgs', img_name='feature_score_dist.png'):
     """
     Função responsável por plotar a distribuição de uma determinada variável do dataset em 
@@ -1652,7 +1652,7 @@ def plot_feature_score_dist(data, feature, model, figsize=(16, 8), kind='boxplot
     if save:
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def cross_val_performance(model, X, y, cv=5):
+def clf_cv_performance(model, X, y, cv=5, model_name=None):
     """
     Função responsável por calcular as principais métricas de um modelo de classificação
     utilizando validação cruzada
@@ -1670,22 +1670,22 @@ def cross_val_performance(model, X, y, cv=5):
     
     Aplicação
     ---------
-    results = cross_val_performance(model=model, X=X, y=y)
+    results = clf_cv_performance(model=model, X=X, y=y)
     """
 
     # Computing metrics using cross validation
     t0 = time.time()
-    accuracy = cross_val_score(estimator, X, y, cv=cv, scoring='accuracy').mean()
-    precision = cross_val_score(estimator, X, y, cv=cv, scoring='precision').mean()
-    recall = cross_val_score(estimator, X, y, cv=cv, scoring='recall').mean()
-    f1 = cross_val_score(estimator, X, y, cv=cv, scoring='f1').mean()
+    accuracy = cross_val_score(model, X, y, cv=cv, scoring='accuracy').mean()
+    precision = cross_val_score(model, X, y, cv=cv, scoring='precision').mean()
+    recall = cross_val_score(model, X, y, cv=cv, scoring='recall').mean()
+    f1 = cross_val_score(model, X, y, cv=cv, scoring='f1').mean()
 
     # Probas for calculating AUC
     try:
-        y_scores = cross_val_predict(estimator, X, y, cv=cv, method='decision_function')
+        y_scores = cross_val_predict(model, X, y, cv=cv, method='decision_function')
     except:
         # Tree based models don't have 'decision_function()' method, but 'predict_proba()'
-        y_probas = cross_val_predict(estimator, X, y, cv=cv, method='predict_proba')
+        y_probas = cross_val_predict(model, X, y, cv=cv, method='predict_proba')
         y_scores = y_probas[:, 1]
     auc = roc_auc_score(y, y_scores)
 
@@ -1693,7 +1693,10 @@ def cross_val_performance(model, X, y, cv=5):
     t1 = time.time()
     delta_time = t1 - t0
     train_performance = {}
-    train_performance['model'] = estimator.__class__.__name__
+    if model_name is None:
+        train_performance['model'] = model.__class__.__name__
+    else:
+        train_performance['model'] = model_name
     train_performance['approach'] = 'Final Model'
     train_performance['acc'] = round(accuracy, 4)
     train_performance['precision'] = round(precision, 4)
@@ -1711,4 +1714,3 @@ def cross_val_performance(model, X, y, cv=5):
 
     return df_performance
 
-    
