@@ -18,6 +18,7 @@ Sumário
 import os
 import pandas as pd
 import numpy as np
+from math import ceil
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.lines import Line2D
@@ -1127,5 +1128,163 @@ def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'multiple_{kind}plot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def plot_multiple_dist_scatterplot(df, columns, y_col, dist_kind='dist', scatter_kind='reg', 
+                                   **kwargs):
+    """
+    Função responsável pela plotagem de análise contínua para múltiplas variáveis
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param columns: lista de colunas a serem utilizadas na análise [type: list]
+    :param y_col: coluna y a ser utilizada na análise de scatter [type: string]
+    :param dist_kind: tipo de plotagem de distribuição [type: string, default='dist']
+        *opções: ['dist', 'kde', 'box', 'boxen', 'strip']
+    :param scatter_kind: tipo de plotagem para correlação [type: string, default='reg']
+        *opções: ['scatter', 'reg']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
+        :arg color: cor da linha para distplot e kdeplot [type: string, default='darkslateblue']
+        :arg title: título do gráfico [type: string, default=f'{dist_kind}plot para a Variável {col}']
+        :arg title2: título do gráfico [type: string, default=f'{scatter_kind}plot entre {col} e {y_col}']
+        :arg size_title: tamanho do título [type: int, default=16]
+        :arg alpha: parâmetro alpha da função sns.scatterplot() [type: float, default=.7]
+        :arg save: flag indicativo de salvamento da imagem gerada [type: bool, default=None]
+        :arg output_path: caminho de output da imagem a ser salva [type: string, default='output/']
+        :arg img_name: nome do arquivo .png a ser gerado [type: string, default=f'{col}_countplot.png']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de um gráfico de barras summarizado
+
+    Aplicação
+    ---------
+    plot_distplot(df=df, col='column_name')
+    """
+    
+    # Validando tipo de plotagem
+    possible_dist_kinds = ['dist', 'kde', 'box', 'boxen', 'strip']
+    possible_scatter_kinds = ['scatter', 'reg']
+    if dist_kind not in possible_dist_kinds:
+        print(f'Parâmetro dist_kind inválido. Opções possívels: {possible_kinds}')
+        return
+    if scatter_kind not in possible_scatter_kinds:
+        print(f'Parâmetro scatter_kind inválido. Opções possívels: {possible_scatter_kinds}')
+        return
+    
+    # Validando quantidade de colunas
+    if y_col not in list(df.columns):
+        print(f'Erro! Argumento "y_col" não presente na base')
+        return
+    
+    # Calculando parâmetros da figura de plotagem
+    n_rows = len(columns)
+    figsize = (17, n_rows * 5)
+    i = 0
+    
+    # Parâmetros adicionais de plotagem
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    hist = kwargs['hist'] if 'hist' in kwargs else True
+    kde = kwargs['kde'] if 'kde' in kwargs else True
+    rug = kwargs['rug'] if 'rug' in kwargs else False
+    shade = kwargs['shade'] if 'shade' in kwargs else True
+    color = kwargs['color'] if 'color' in kwargs else 'darkslateblue'
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
+    size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    
+    # Criando figura e iterando sobre colunas da lista
+    fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
+    for col in columns:
+        ax = axs[i, 0]
+        
+        # Distplot
+        if dist_kind == 'dist':
+            if hue is not None:
+                for cat in df[hue].value_counts().index:
+                    sns.distplot(df[df[hue]==cat][col], ax=ax, hist=hist, kde=kde, rug=rug, label=cat)
+            else:
+                sns.distplot(df[col], ax=ax, hist=hist, kde=kde, rug=rug, color=color)
+                
+        # Kdeplot        
+        elif dist_kind == 'kde':
+            if hue is not None:
+                for cat in df[hue].value_counts().index:
+                    sns.kdeplot(df[df[hue]==cat][col], ax=ax, shade=shade, label=cat)
+            else:
+                sns.kdeplot(df[col], ax=ax, shade=shade, color=color)
+                
+        # Boxplot
+        elif dist_kind == 'box':
+            if hue is not None:
+                sns.boxplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.boxplot(y=col, data=df, ax=ax, palette=palette)
+                
+        # Boxenplot
+        elif dist_kind == 'boxen':
+            if hue is not None:
+                sns.boxenplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.boxenplot(y=col, data=df, ax=ax, palette=palette)
+                
+        # Stripplot
+        elif dist_kind == 'strip':
+            if hue is not None:
+                sns.stripplot(x=hue, y=col, data=df, ax=ax, palette=palette)
+            else:
+                sns.stripplot(y=col, data=df, ax=ax, palette=palette)
+        
+        # Paraêmtros do segundo eixo de plotagem (correlação)
+        ax2 = axs[i, 1]
+        alpha = kwargs['alpha'] if 'alpha' in kwargs else .7
+        
+        # Scatterplot
+        if scatter_kind == 'scatter':
+            sns.scatterplot(x=col, y=y_col, data=df, color=color, ax=ax2)
+            
+        # Regplot
+        if scatter_kind == 'reg':
+            sns.regplot(x=col, y=y_col, data=df, color=color, ax=ax2)
+        
+        # Incrementando índices
+        i += 1
+        
+        # Modificando labels
+        if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
+            labels_old = ax.get_xticklabels()
+            labels = [l.get_text() for l in labels_old]
+            try:
+                # Convertendo textos antes do mapeamento
+                if type(list(kwargs['label_names'].keys())[0]) is int:
+                    labels = [int(l) for l in labels]
+                elif type(list(kwargs['label_names'].keys())[0]) is float:
+                    labels = [float(l) for l in labels]
+
+                # Mapeando rótulos customizados
+                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
+                ax.set_xticklabels(labels)
+            except Exception as e:
+                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
+        
+        # Personalizando plotagem
+        format_spines(ax, right_border=False)
+        format_spines(ax2, right_border=False)
+        plt.tight_layout()
+        title = kwargs['title'] if 'title' in kwargs else f'{dist_kind.title()}plot para a variável {col}'
+        title2 = kwargs['title2'] if 'title2' in kwargs else f'{scatter_kind.title()}plot entre {col} e {y_col}'
+        ax.set_title(title, size=size_title)
+        ax2.set_title(title2, size=size_title)
+        if dist_kind in ['dist', 'kde'] and hue is not None:
+            ax.legend(title=hue)
+
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{dist_kind}_{scatter_kind}plot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)      
 
         
