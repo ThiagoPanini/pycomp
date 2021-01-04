@@ -15,8 +15,9 @@ Sumário
 1. Configuração Inicial
     1.1 Instanciando Objeto de Log
 2. Transformadores
-    2.1. Pipelines Iniciais
-    2.2. Pipelines de Data Prep
+    2.1 Pipelines Iniciais
+    2.2 Pipelines de Data Prep
+    2.3 Pipelines de Consumo de Modelo
 -----------------------------------
 """
 
@@ -232,6 +233,7 @@ class SplitDados(BaseEstimator, TransformerMixin):
 ---------------------------------------------------
 """
 
+
 class DummiesEncoding(BaseEstimator, TransformerMixin):
     """
     Classe responsável por aplicar o processo de encoding em dados categóricos utilizando o método
@@ -253,8 +255,9 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
     X_encoded = encoder.fit_transform(df[cat_features])
     """
 
-    def __init__(self, dummy_na=True):
+    def __init__(self, dummy_na=True, cat_features_ori=None):
         self.dummy_na = dummy_na
+        self.cat_features_ori = cat_features_ori
 
     def fit(self, X, y=None):
         return self
@@ -262,7 +265,15 @@ class DummiesEncoding(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
 
         # Salvando features em um atributo da classe
-        self.cat_features_ori = list(X.columns)
+        if self.cat_features_ori is None:
+            try:
+                self.cat_features_ori = list(X.columns)
+            except AttributeError as ae:
+                print(f'Impossível retornar colunas de um objeto do tipo numpy array. Utilize o atributo "cat_features_ori" da classe')
+                print(f'Exception lançada: {e}')
+                return
+        else:
+            X = pd.DataFrame(X, columns=self.cat_features_ori)
 
         # Aplicando encoding
         X_cat_dum = pd.get_dummies(X, dummy_na=self.dummy_na)
@@ -375,3 +386,48 @@ class SeletorTopFeatures(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         indices = np.sort(np.argpartition(np.array(self.feature_importance), -self.k)[-self.k:])
         return X[:, indices]
+
+
+"""
+---------------------------------------------------
+------------ 2. CUSTOM TRANSFORMERS ---------------
+        2.3 Pipelines de Consumo de Modelo
+---------------------------------------------------
+"""
+
+class ConsumoModelo(BaseEstimator, TransformerMixin):
+    """
+    Classe responsável por realizar o consumo de um modelo e gerar uma base final com as predições (classe e score)
+
+    Parâmetros
+    ----------
+    :param model: estimator treinado do modelo a ser utilizado nas predições [type: estimator]
+    :param features: features finais do modelo após o step de preparação [type: list]
+
+    Retorno
+    -------
+    :return df_pred: DataFrame contendo as features e os resultados das preidções [type: pd.DataFrame]
+
+    Aplicação
+    ---------
+    model = trainer._get_estimator(model_name='RandomForest')
+    model_exec = ConsumoModelo(model=model, features=MODEL_FEATURES)
+    df_pred = model_exec.fit_transform()
+    """
+    
+    def __init__(self, model, features):
+        self.model = model
+        self.features = features
+        
+    def fit(self, X):
+        return self
+    
+    def transform(self, X):
+        # Criando DataFrame com features do modelo
+        df_final = pd.DataFrame(X, columns=self.features)
+        
+        # Realizando predições
+        df_final['y_pred'] = self.model.predict(X)
+        df_final['y_scores'] = self.model.predict_proba(X)[:, 1]
+        
+        return df_final        
