@@ -83,6 +83,7 @@ def plot_donut_chart(df, col, **kwargs):
     :param col: nome da coluna a ser analisada [type: string]
     :param **kwargs: parâmetros adicionais da função
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg circle_radius: raio do círculo central do gráfico [type: float, default=0.8]
         :arg circle_radius_color: cor do círculo central do gráfico [type: string, default='white']
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
@@ -133,12 +134,14 @@ def plot_donut_chart(df, col, **kwargs):
 
     # Parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     circle_radius = kwargs['circle_radius'] if 'circle_radius' in kwargs else 0.8
     circle_radius_color = kwargs['circle_radius_color'] if 'circle_radius_color' in kwargs else 'white'
 
     # Plotando gráfico de rosca
     center_circle = plt.Circle((0, 0), circle_radius, color=circle_radius_color)
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     wedges, texts, autotexts = ax.pie(values, labels=labels, colors=colors, startangle=90, autopct=make_autopct(values))
     ax.add_artist(center_circle)
 
@@ -177,6 +180,7 @@ def plot_pie_chart(df, col, **kwargs):
     :param col: nome da coluna a ser analisada [type: string]
     :param **kwargs: parâmetros adicionais da função
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg top: índice de filtro das top categorias a serem plotadas [type: int]
         :arg colors: lista de cores para aplicação na plotagem [type: list]
@@ -226,12 +230,14 @@ def plot_pie_chart(df, col, **kwargs):
 
     # Parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     explode = kwargs['explode'] if 'explode' in kwargs else (0,) * len(labels)
     shadow = kwargs['shadow'] if 'shadow' in kwargs else False
     
 
     # Plotando gráfico de rosca
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     wedges, texts, autotexts = ax.pie(values, labels=labels, colors=colors, autopct=make_autopct(values), 
                                       startangle=90, explode=explode, shadow=shadow)
     
@@ -268,6 +274,7 @@ def plot_double_donut_chart(df, col1, col2, **kwargs):
         :arg label_names_col1: lista com rótulos da primeira coluna [type: list, default=value_counts().index]
         :arg label_names_col2: lista com rótulos da segunda coluna [type: list, default=value_counts().index]
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg circle_radius: raio do círculo central do gráfico [type: float, default=0.55]
         :arg colors: lista de cores para aplicação na plotagem [type: list]
         :arg text: texto central do gráfico de rosca [type: string, default=f'Total: \n{sum(values)}']
@@ -334,12 +341,14 @@ def plot_double_donut_chart(df, col1, col2, **kwargs):
 
     # Parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (8, 8)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     circle_radius = kwargs['circle_radius'] if 'circle_radius' in kwargs else 0.55
     circle_radius_color = kwargs['circle_radius_color'] if 'circle_radius_color' in kwargs else 'white'
 
     # Plotando gráfico de rosca
     center_circle = plt.Circle((0, 0), circle_radius, color=circle_radius_color)
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     wedges1, texts1, autotexts1 = ax.pie(first_layer_values, colors=colors1, startangle=90, 
                                          autopct=make_autopct(first_layer_values), pctdistance=1.20)
     wedges2, texts2, autotexts2 = ax.pie(second_layer_values, radius=0.75, colors=colors2, startangle=90, 
@@ -393,6 +402,7 @@ def plot_countplot(df, col, **kwargs):
     :param **kwargs: parâmetros adicionais da função   
         :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
         :arg orient: horizontal ou vertical [type: string, default='h']
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg order: flag para ordenação dos dados [type: bool, default=True]
@@ -428,6 +438,7 @@ def plot_countplot(df, col, **kwargs):
         
     # Parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     hue = kwargs['hue'] if 'hue' in kwargs else None
     palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
     order = df[col].value_counts().index if 'order' in kwargs and bool(kwargs['order']) else None
@@ -442,7 +453,8 @@ def plot_countplot(df, col, **kwargs):
         y = None
     
     # Criando figura e aplicando countplot
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     sns.countplot(data=df, ax=ax, x=x, y=y, hue=hue, order=order, palette=palette)
 
     # Retornando parâmetros de formatação da plotagem
@@ -531,6 +543,7 @@ def plot_pct_countplot(df, col, hue, **kwargs):
         :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
         :arg orient: horizontal ou vertical [type: string, default='h']
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
         :arg title: título do gráfico [type: string, default=f'Volumetria para a variável {col}']
@@ -567,13 +580,15 @@ def plot_pct_countplot(df, col, hue, **kwargs):
         
     # Retornando parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
     kind = 'bar' if 'orient' in kwargs and kwargs['orient'] == 'v' else 'barh'
     title = kwargs['title'] if 'title' in kwargs else f'Representatividade de {hue} para a coluna {col}'
     size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
     
     # Realizando quebra agrupada das colunas
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     col_to_hue = pd.crosstab(df[col], df[hue])
     col_to_hue.div(col_to_hue.sum(1).astype(float), axis=0).plot(kind=kind, stacked=True, ax=ax, 
                                                                  colormap=palette)
@@ -634,6 +649,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
     :param **kwargs: parâmetros adicionais da função   
         :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg top: filtro de top categorias a serem plotadas [type: int, default=-1]
         :arg orient: horizontal ou vertical [type: string, default='h']
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
@@ -683,6 +699,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
         
     # Retornando parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
     
     # Rótulos de medida para a plotagem
@@ -704,7 +721,8 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
     size_labels = kwargs['size_labels'] if 'size_labels' in kwargs else 14
     
     # Construindo plotagem
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     sns.barplot(x=x, y=y, data=df_group, hue=hue, palette=palette, ci=None, orient=orient)
     
     # Formatando plotagem
@@ -736,6 +754,7 @@ def plot_distplot(df, col, kind='dist', **kwargs):
     :param **kwargs: parâmetros adicionais da função   
         :arg hue: parâmetro hue para quebra de plotagem do método countplot [type: string, default=None]
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg label_names: labels personalizados para os rótulos [type: dict, default=value_counts().index]
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow']
         :arg title: título do gráfico [type: string, default=f'{kind}plot para a Variável {col}']
@@ -769,6 +788,7 @@ def plot_distplot(df, col, kind='dist', **kwargs):
 
     # Parâmetros de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 7)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     hist = kwargs['hist'] if 'hist' in kwargs else False
     kde = kwargs['kde'] if 'kde' in kwargs else True
     rug = kwargs['rug'] if 'rug' in kwargs else False
@@ -780,7 +800,8 @@ def plot_distplot(df, col, kind='dist', **kwargs):
     sns.set(style='white', palette='muted', color_codes=True)
 
     # Construindo plotagem
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     
     # Distplot
     if kind == 'dist':
@@ -855,6 +876,7 @@ def plot_corr_matrix(df, corr_col, corr='positive', **kwargs):
     :param corr: tipo de correlação (positiva ou negativa) [type: string, default='positive']
     :param **kwargs: parâmetros adicionais da função   
         :arg figsize: dimensões da figura de plotagem [type: tuple, default=(8, 8)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
         :arg palette: paleta de cores utilizada na plotagem [type: string, default='YlGnBu' ou 'magma']
         :arg n_vars: quantidade de variáveis utilizadas na análise [type: int, default=10]
         :arg fmt: formato dos números/labels da matriz [type: string, default='.2f']
@@ -910,6 +932,7 @@ def plot_corr_matrix(df, corr_col, corr='positive', **kwargs):
 
     # Retornando parâmetros gerais de plotagem
     figsize = kwargs['figsize'] if 'figsize' in kwargs else (10, 10)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
     size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
     cbar = kwargs['cbar'] if 'cbar' in kwargs else True
     annot = kwargs['annot'] if 'annot' in kwargs else True
@@ -917,7 +940,8 @@ def plot_corr_matrix(df, corr_col, corr='positive', **kwargs):
     fmt = kwargs['fmt'] if 'fmt' in kwargs else '.2f'
     
     # Plotando matriz através de um heatmap
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(corr_data, ax=ax, cbar=cbar, annot=annot, square=square, fmt=fmt, cmap=cmap,
                 yticklabels=corr_cols, xticklabels=corr_cols)
     ax.set_title(title, size=size_title, color='black', pad=20)
@@ -997,7 +1021,7 @@ def data_overview(df, **kwargs):
     
     return df_overview
 
-def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
+def plot_multiple_distplots(df, col_list, n_cols=3, kind='dist', **kwargs):
     """
     Função responsável pela plotagem de análise contínua para múltiplas variáveis
     
@@ -1036,7 +1060,7 @@ def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
         return
     
     # Calculando parâmetros da figura de plotagem
-    n_rows = ceil(len(columns) / n_cols)
+    n_rows = ceil(len(col_list) / n_cols)
     figsize = (17, n_rows * 5)
     i, j = 0, 0
     
@@ -1052,7 +1076,7 @@ def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
     
     # Criando figura e iterando sobre colunas da lista
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
-    for col in columns:
+    for col in col_list:
         ax = axs[i, j]
         
         # Distplot
@@ -1098,23 +1122,6 @@ def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
             j = 0
             i += 1
         
-        # Modificando labels
-        if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
-            labels_old = ax.get_xticklabels()
-            labels = [l.get_text() for l in labels_old]
-            try:
-                # Convertendo textos antes do mapeamento
-                if type(list(kwargs['label_names'].keys())[0]) is int:
-                    labels = [int(l) for l in labels]
-                elif type(list(kwargs['label_names'].keys())[0]) is float:
-                    labels = [float(l) for l in labels]
-
-                # Mapeando rótulos customizados
-                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
-                ax.set_xticklabels(labels)
-            except Exception as e:
-                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
-        
         # Personalizando plotagem
         format_spines(ax, right_border=False)
         plt.tight_layout()
@@ -1123,13 +1130,30 @@ def plot_multiple_distplots(df, columns, n_cols=3, kind='dist', **kwargs):
         if kind in ['dist', 'kde'] and hue is not None:
             ax.legend(title=hue)
 
+    # Tratando caso apartado: figura(s) vazia(s)
+    i, j = 0, 0
+    for n_plots in range(n_rows * n_cols):
+
+        # Se o índice do eixo for maior que a quantidade de features, elimina as bordas
+        if n_plots >= len(col_list):
+            try:
+                axs[i][j].axis('off')
+            except TypeError as e:
+                axs[j].axis('off')
+
+        # Incrementando
+        j += 1
+        if j == n_cols:
+            j = 0
+            i += 1
+
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'multiple_{kind}plot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
 
-def plot_multiple_dist_scatterplot(df, columns, y_col, dist_kind='dist', scatter_kind='reg', 
+def plot_multiple_dist_scatterplot(df, col_list, y_col, dist_kind='dist', scatter_kind='reg', 
                                    **kwargs):
     """
     Função responsável pela plotagem de análise contínua para múltiplas variáveis
@@ -1137,7 +1161,7 @@ def plot_multiple_dist_scatterplot(df, columns, y_col, dist_kind='dist', scatter
     Parâmetros
     ----------
     :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
-    :param columns: lista de colunas a serem utilizadas na análise [type: list]
+    :param col_list: lista de colunas a serem utilizadas na análise [type: list]
     :param y_col: coluna y a ser utilizada na análise de scatter [type: string]
     :param dist_kind: tipo de plotagem de distribuição [type: string, default='dist']
         *opções: ['dist', 'kde', 'box', 'boxen', 'strip']
@@ -1198,7 +1222,7 @@ def plot_multiple_dist_scatterplot(df, columns, y_col, dist_kind='dist', scatter
     
     # Criando figura e iterando sobre colunas da lista
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
-    for col in columns:
+    for col in col_list:
         ax = axs[i, 0]
         
         # Distplot
@@ -1252,23 +1276,6 @@ def plot_multiple_dist_scatterplot(df, columns, y_col, dist_kind='dist', scatter
         
         # Incrementando índices
         i += 1
-        
-        # Modificando labels
-        if 'label_names' in kwargs and hue is not None and kind in ['box', 'boxen', 'strip']:
-            labels_old = ax.get_xticklabels()
-            labels = [l.get_text() for l in labels_old]
-            try:
-                # Convertendo textos antes do mapeamento
-                if type(list(kwargs['label_names'].keys())[0]) is int:
-                    labels = [int(l) for l in labels]
-                elif type(list(kwargs['label_names'].keys())[0]) is float:
-                    labels = [float(l) for l in labels]
-
-                # Mapeando rótulos customizados
-                labels = pd.DataFrame(labels)[0].map(kwargs['label_names'])
-                ax.set_xticklabels(labels)
-            except Exception as e:
-                print(f'Erro ao mapear labels na coluna {col}. Exception: {e}')
         
         # Personalizando plotagem
         format_spines(ax, right_border=False)
