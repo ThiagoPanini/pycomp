@@ -18,6 +18,7 @@ Sumário
 import os
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from math import ceil
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -1334,7 +1335,7 @@ def plot_cat_aggreg_report(df, cat_col, value_col, aggreg='mean', **kwargs):
 
     Aplicação
     ---------
-    plot_multiple_countplots(df=df, col_list=total_cols)
+    plot_cat_aggreg_report(df=df, cat_col="categoric_column", value_col="numeric_column")
     """
 
     # Validando presença das colunas na base
@@ -1466,6 +1467,154 @@ def plot_cat_aggreg_report(df, cat_col, value_col, aggreg='mean', **kwargs):
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
-        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{col}{hue}_{kind}plot.png'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{cat_col}_{value_col}_{aggreg}plot.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
+
+def plot_evolutionplot(df, x, y, agg=True, agg_functions=['count', 'sum', 'mean'], 
+                          agg_type='count', **kwargs):
+    """
+    Função responsável por realizar uma plotagem de evolução, em um gráfico de linhas,
+    com base principal em análises de data no eixo x. Opcionalmente, é possível configurar
+    a função para realizar o procedimento de agregação de forma interna, sendo necessário
+    passar apenas a base bruta no argumento "df" e configurar os arugmento "agg",
+    "agg_functions" e "agg_type"
+    
+    Parâmetros
+    ----------
+    :param df: base de dados utilizada na plotagem [type: pd.DataFrame]
+    :param x: coluna a ser posicionada no eixo x (representação de data) [type: string]
+    :param y: coluna a ser analisada no eixo y (agregação) [type: string]
+    :param agg: flag para aplicação do agrupamento dentro da função [type: bool, default=True]
+    :param agg_functions: lista de agregadores a serem aplicados [type: list, default=['count', 'sum', 'mean']]
+    :param agg_type: tipo de agregação a ser analisada no gráfico [type: string, default='count']
+    :param **kwargs: parâmetros adicionais da função   
+        :arg hue: parâmetro hue para quebra de plotagem [type: string, default=None]
+        :arg str_col: flag de coluna de string no eixo x [type: string, default=True] 
+        :arg date_col: flag de coluna de data no eixo x [type: string, default=True]
+        :arg date_fmt: formato da data a ser aplicado na transformação [type: string, default='%Y%m']
+        :arg figsize: dimensões da figura de plotagem [type: tuple, default=(17, 7)]
+        :arg ax: eixo do matplotlib em caso de criação externa da figure [type: mpl.Axes, default=None]
+        :arg palette: paleta de cores utilizada na plotagem [type: string, default='rainbow_r']
+        :arg color: cor a ser utilizada na plotagem [type: string, default='darkslateblue']
+        :arg title: título do gráfico [type: string, default=f'Lineplot - {agg_type.title()} de {y_ori} por {x}']
+        :arg markers: parâmetro markers da função sns.lineplot() [type: bool, default=False]
+        :arg style: parâmetro style da função sns.lineplot() [type: string, default=None]
+        :arg size: parâmetro size da função sns.lineplot() [type: string, default=None]
+        :arg sort: parâmetro sort da função sns.lineplot() [type: bool, default=False]
+        :arg x_rot: rotação do eixo x dos labels [type: int, default=90]
+        :arg label_data: flag para inserção de rótulos nas linhas [type: bool, default=True]
+        :arg label_aggreg: seleção de agregação do rótulo [type: string, default='K']
+            *opções: ['', 'K', 'M', 'B']
+    
+    Retorno
+    -------
+    Essa função não retorna nenhum parâmetro além de uma plotagem de evolução (linhas)
+
+    Aplicação
+    ---------
+    plot_evolutionplot(df=df, x='date_col', y='num_col', agg_type='sum', date_col=False, x_rot=0)
+    """
+    
+    # Definindo função de agregação
+    def make_aggregation(df, group_col, value_col, agg_functions=['count', 'sum', 'mean'], **kwargs):
+    
+        # Agrupando dados de acordo com a especificação definida
+        agg_dict = {value_col: agg_functions}
+        df_group = df.groupby(by=group_col, as_index=False).agg(agg_dict)
+
+        return df_group
+    
+    # Validando presença das colunas x e y na base
+    y_ori = y
+    if x not in df.columns:
+        print(f'Coluna "x"={x} não presente na base')
+        return
+    if y not in df.columns:
+        print(f'Coluna "y"={y} não presente na base')
+        return
+    
+    # Extraindo parâmetros úteis de quebra de plotagem
+    hue = kwargs['hue'] if 'hue' in kwargs else None
+    if hue:
+        df[hue] = df[hue].astype(str)
+    
+    # Verificando necessidade de agregar dataset
+    if agg:
+        group_col = [x, hue] if hue else x
+        new_columns = [x, hue] + agg_functions if hue else [x] + agg_functions
+        df_group = make_aggregation(df=df, group_col=group_col, value_col=y, agg_functions=agg_functions)
+        
+        # Verificando tipo de agrupamento a ser plotado no gráfico de linhas
+        if agg_type not in agg_functions:
+            print(f'Argumento "agg_type" não presente na lista "agg_functions"')
+            return
+        
+        # Atualizando coluna y e df da plotagem de acordo com a agregação
+        df_group.columns = new_columns
+        y = agg_type
+    else:
+        df_group = df     
+        
+    # Extraindo parâmetros de transformação das colunas
+    str_col = kwargs['str_col'] if 'str_col' in kwargs else True
+    date_col = kwargs['date_col'] if 'date_col' in kwargs else True
+    date_fmt = kwargs['date_fmt'] if 'date_fmt' in kwargs else '%Y%m'
+    
+    # Transformando colunas (string e data)
+    if str_col:
+        df_group[x] = df_group[x].astype(str)
+    if date_col:
+        try:
+            df_group[x] = df_group[x].apply(lambda st: datetime.strptime(str(st), date_fmt))
+        except ValueError as ve:
+            print(f'{ve}. Modifique o argumento "date_fmt" ou configure "date_col=False"')
+            print(f'')
+    
+    # Extraindo parâmetros adicionais do gráfico
+    figsize = kwargs['figsize'] if 'figsize' in kwargs else (17, 7)
+    ax = kwargs['ax'] if 'ax' in kwargs else None
+    color = kwargs['color'] if 'color' in kwargs else 'darkslateblue'
+    palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow_r'
+    markers = kwargs['markers'] if 'markers' in kwargs else True
+    style = kwargs['style'] if 'style' in kwargs else None
+    size = kwargs['size'] if 'size' in kwargs else None
+    sort = kwargs['sort'] if 'sort' in kwargs else False
+    
+    # Plotando gráfico
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    sns.lineplot(x=x, y=y, data=df_group, ax=ax, hue=hue, color=color, palette=palette, 
+                 markers=markers, style=style, size=size, sort=sort)
+    
+    # Extraindo indicadores de formatação de plotagem
+    x_rot = kwargs['x_rot'] if 'x_rot' in kwargs else 90
+    title = kwargs['title'] if 'title' in kwargs else f'Lineplot - {agg_type.title()} de {y_ori} por {x}'
+    label_data = kwargs['label_data'] if 'label_data' in kwargs else True
+    label_aggreg = kwargs['label_aggreg'] if 'label_aggreg' in kwargs else 'K'
+    label_aggreg_options = ['', 'K', 'M', 'B']
+    if label_aggreg not in label_aggreg_options:
+        print(f'Parâmetro "label_aggreg" {label_aggreg} deve estar entre {label_aggreg_options}. Revertendo para "None"')
+        label_aggreg = ''   
+    label_aggreg_dict = {'': 1, 'K': 1000, 'M': 1000000, 'B': 1000000000}
+    label_aggreg_value = label_aggreg_dict[label_aggreg]
+    
+    # Formatando plotagem
+    format_spines(ax, right_border=False)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(x_rot)
+    ax.set_title(title, size=16)
+    
+    # Rótulando dados
+    if label_data:
+        for x, y in zip(df_group[x], df_group[y]):
+            ax.annotate(str(round(y/label_aggreg_value, 2))+label_aggreg, xy=(x, y), 
+                        textcoords='data', ha='center', va='center', color='dimgrey')
+
+    # Verificando salvamento da imagem
+    if 'save' in kwargs and bool(kwargs['save']):
+        output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
+        img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{x}_{y}evlplot.png'
+        save_fig(fig=fig, output_path=output_path, img_name=img_name)
+    
+    plt.tight_layout()
 
