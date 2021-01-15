@@ -691,7 +691,8 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
             df_group = df.groupby(by=[group_col, hue], as_index=False).agg({value_col: aggreg})
         else:
             df_group = df.groupby(by=group_col, as_index=False).agg({value_col: aggreg})
-        df_group.sort_values(by=value_col, ascending=False, inplace=True)
+        #df_group.sort_values(by=value_col, ascending=False, inplace=True)
+        df_group[group_col] = df_group[group_col].astype(str)
     except AttributeError as ae:
         print(f'Erro ao aplicar agregação com {aggreg}. Excepion lançada: {ae}')
         
@@ -707,7 +708,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
     # Rótulos de medida para a plotagem
     if 'label_names' in kwargs:
         df_group[group_col] = df_group[group_col].map(kwargs['label_names'])
-    order = df[col].value_counts().index if 'order' in kwargs and bool(kwargs['order']) else None
+    order = kwargs['order'] if 'order' in kwargs else None
         
     # Orientação da plotagem
     orient = kwargs['orient'] if 'orient' in kwargs and kwargs['orient'] in ['h', 'v'] else 'v'
@@ -743,7 +744,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
         output_path = kwargs['output_path'] if 'output_path' in kwargs else 'output/'
         img_name = kwargs['img_name'] if 'img_name' in kwargs else f'{value_col}{hue}_{aggreg}plot_by{group_col}.png'
         save_fig(fig=fig, output_path=output_path, img_name=img_name)
- 
+
 def plot_distplot(df, col, kind='dist', **kwargs):
     """
     Função responsável pela plotagem de variáveis contínuas em formato de distribuição
@@ -1087,7 +1088,11 @@ def plot_multiple_distplots(df, col_list, n_cols=3, kind='dist', **kwargs):
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
     for col in col_list:
         # Parâmetros de plotagem
-        ax = axs[i, j]
+        try:
+            ax = axs[i, j]
+        except IndexError as ie:
+            # Plotagem em uma única linha (eixo recebe argumentos como lista e não como matriz)
+            ax = axs[j]
         title = f'{kind.title()} para {col}'
         
         plot_distplot(df=df, col=col, ax=ax, kind=kind, hue=hue, hist=hist, kde=kde, rug=rug,
@@ -1195,14 +1200,22 @@ def plot_multiple_dist_scatterplot(df, col_list, y_col, dist_kind='dist', scatte
     fig, axs = plt.subplots(nrows=n_rows, ncols=2, figsize=figsize)
     for col in col_list:
         # Parâmetros de plotagem
-        ax = axs[i, 0]
+        try:
+            ax = axs[i, 0]
+        except IndexError as ie:
+            # Plotagem em uma única linha (eixo recebe argumentos como lista e não como matriz)
+            ax = axs[0]
         title = f'{dist_kind.title()} para a variável {col}'
         
         plot_distplot(df=df, col=col, ax=ax, kind=dist_kind, hue=hue, hist=hist, kde=kde, rug=rug,
                       shade=shade, color=color, palette=palette, title=title, size_title=size_title)
         
         # Paraêmtros do segundo eixo de plotagem (correlação)
-        ax2 = axs[i, 1]
+        try:
+            ax2 = axs[i, 1]
+        except IndexError as ie:
+            # Plotagem em uma única linha (eixo recebe argumentos como lista e não como matriz)
+            ax2 = axs[1]
         alpha = kwargs['alpha'] if 'alpha' in kwargs else .7
         
         # Scatterplot
@@ -1282,7 +1295,12 @@ def plot_multiple_countplots(df, col_list, n_cols=3, **kwargs):
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize)
     for col in col_list:
         # Definindo parâmetros de plotagem
-        ax = axs[i, j]
+        try:
+            ax = axs[i, j]
+        except IndexError as ie:
+            # Plotagem em uma única linha (eixo recebe argumentos como lista e não como matriz)
+            ax = axs[j]
+        
         title = kwargs['title'] if 'title' in kwargs else f'Volumetria de dados por {col}'
         
         # Chamando função para plotagem individual de countplot

@@ -181,7 +181,7 @@ class EliminaDuplicatas(BaseEstimator, TransformerMixin):
 
 class SplitDados(BaseEstimator, TransformerMixin):
     """
-    Classe responsável por auxiliar a separação de uma base de dados em treino e teste
+    Classe responsável por aplicar a separação de uma base de dados em treino e teste
     a partir da aplicação da função train_test_split() do módulo sklearn.model_selection.
     O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
 
@@ -224,6 +224,79 @@ class SplitDados(BaseEstimator, TransformerMixin):
         self.y_ = df[self.target].values
 
         return train_test_split(self.X_, self.y_, test_size=self.test_size, random_state=self.random_state)
+
+
+class AgrupamentoCategoricoInicial(BaseEstimator, TransformerMixin):
+    """
+    Classe responsável por realizar um agrupamento categórico inicial em variáveis de muitas entradas
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
+
+    Parâmetros
+    ----------
+    :param features: lista de colunas alvo da aplicação [type: list]
+    :param n_cat: quantidade limite de entradas categóricas [type: int, default=5]
+    :param other_tag: categoria referente às demais entradas [type: string, default='Other']
+
+    Retorno
+    ------
+    :return: df: DataFrame após o agrupamento categórico [type: pandas.DataFrame]
+
+    Aplicação
+    ---------
+    cat_agrup = AgrupamentoCategoricoInicial(features=lista, n_cat=3)
+    df_prep = cat_agrup.fit_transform(df)
+    """
+    
+    def __init__(self, features, n_cat=5, other_tag='Other'):
+        self.features = features
+        self.n_cat = n_cat
+        self.other_tag = other_tag
+        
+    def fit(self, df, y=None):
+        return self
+    
+    def transform(self, df, y=None):
+        # Iterando sobre o set de features
+        for feature in self.features:
+            other_list = list(df[feature].value_counts().index[self.n_cat:])
+            df[feature] = df[feature].apply(lambda x: x if x not in other_list else self.other_tag)
+            
+        return df
+
+
+class AgrupamentoCategoricoFinal(BaseEstimator, TransformerMixin):
+    """
+    Classe responsável por realizar um agrupamento categórico definitivo nas variáveis
+    O método fit_transform() é herdado dos objetos BaseEstimator e TransformerMixin
+
+    Parâmetros
+    ----------
+    :param cat_dict: dicionário com a relação de colunas e entradas [type: dict]
+    :param other_tag: categoria referente às demais entradas [type: string, default='Other']
+
+    Retorno
+    ------
+    :return: df: DataFrame após o agrupamento categórico [type: pandas.DataFrame]
+
+    Aplicação
+    ---------
+    cat_agrup = AgrupamentoCategoricoFinal(cat_dict=cat_dict, other_tag=OTHER_TAG)
+    df_prep = cat_agrup.fit_transform(df)
+    """
+    
+    def __init__(self, cat_dict, other_tag='Other'):
+        self.cat_dict = cat_dict
+        self.other_tag = other_tag
+        
+    def fit(self, df, y=None):
+        return self
+    
+    def transform(self, df, y=None):
+        # Iterando sobre dicionário e transformando entradas das colunas
+        for col, cats in self.cat_dict.items():
+            df[col] = df[col].apply(lambda x: x if x in cats else self.other_tag)
+            
+        return df
 
 
 """
