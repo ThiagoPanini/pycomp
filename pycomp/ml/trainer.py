@@ -194,7 +194,7 @@ class ClassificadorBinario:
                 }
             }
         :param X_train: features do modelo a ser treinado [type: np.array]
-        :param y_train: array contendo variável do modelo [type: np.array]
+        :param y_train: array contendo variável target do modelo [type: np.array]
         :param **kwargs: argumentos adicionais do método
             :arg approach: indicativo de sufixo para armazenamento no atributo classifiers_info [type: string, default: '']
             :arg random_search: flag para aplicação do RandomizedSearchCV [type: bool, default: False]

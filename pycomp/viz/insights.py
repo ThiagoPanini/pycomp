@@ -723,6 +723,7 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
     title = kwargs['title'] if 'title' in kwargs else f'Agrupamento de {group_col} por {aggreg} de {value_col}'
     size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
     size_labels = kwargs['size_labels'] if 'size_labels' in kwargs else 14
+    n_dec = kwargs['n_dec'] if 'n_dec' in kwargs else 2
     
     # Construindo plotagem
     if ax is None:
@@ -735,9 +736,9 @@ def plot_aggregation(df, group_col, value_col, aggreg, **kwargs):
 
     # Inserindo rótulo de percentual
     if orient == 'h':
-        AnnotateBars(n_dec=1, font_size=size_labels, color='black').horizontal(ax)
+        AnnotateBars(n_dec=n_dec, font_size=size_labels, color='black').horizontal(ax)
     else:
-        AnnotateBars(n_dec=1, font_size=size_labels, color='black').vertical(ax)
+        AnnotateBars(n_dec=n_dec, font_size=size_labels, color='black').vertical(ax)
             
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):
@@ -801,6 +802,9 @@ def plot_distplot(df, col, kind='dist', **kwargs):
     palette = kwargs['palette'] if 'palette' in kwargs else 'rainbow'
     title = kwargs['title'] if 'title' in kwargs else f'{kind.title()}plot para a Variável {col}'
     size_title = kwargs['size_title'] if 'size_title' in kwargs else 16
+    list_of_colors = ['darkslateblue', 'cornflowerblue', 'cadetblue', 'mediumseagreen', 'salmon', 'lightskyblue', 'crimson']
+    color_list = kwargs['color_list'] if 'color_list' in kwargs else list_of_colors
+    c = 0
 
     sns.set(style='white', palette='muted', color_codes=True)
 
@@ -812,14 +816,18 @@ def plot_distplot(df, col, kind='dist', **kwargs):
     if kind == 'dist':
         if hue is not None:
             for cat in df[hue].value_counts().index:
+                color = color_list[c]
                 sns.distplot(df[df[hue]==cat][col], ax=ax, hist=hist, kde=kde, rug=rug, label=cat, color=color)
+                c += 1
         else:
             sns.distplot(df[col], ax=ax, hist=hist, kde=kde, rug=rug, color=color)
     # Kdeplot        
     elif kind == 'kde':
         if hue is not None:
             for cat in df[hue].value_counts().index:
+                color = color_list[c]
                 sns.kdeplot(df[df[hue]==cat][col], ax=ax, shade=shade, label=cat, color=color)
+                c += 1
         else:
             sns.kdeplot(df[col], ax=ax, shade=shade, color=color)
     # Boxplot
@@ -1313,7 +1321,24 @@ def plot_multiple_countplots(df, col_list, n_cols=3, **kwargs):
             j = 0
             i += 1
             
-        plt.tight_layout()      
+    # Tratando caso apartado: figura(s) vazia(s)
+    i, j = 0, 0
+    for n_plots in range(n_rows * n_cols):
+
+        # Se o índice do eixo for maior que a quantidade de features, elimina as bordas
+        if n_plots >= len(col_list):
+            try:
+                axs[i][j].axis('off')
+            except TypeError as e:
+                axs[j].axis('off')
+
+        # Incrementando
+        j += 1
+        if j == n_cols:
+            j = 0
+            i += 1 
+    
+    plt.tight_layout()      
 
     # Verificando salvamento da imagem
     if 'save' in kwargs and bool(kwargs['save']):

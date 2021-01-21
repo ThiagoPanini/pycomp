@@ -25,7 +25,9 @@ Sumário
 import logging
 from pycomp.log.log_config import log_config
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
+from numpy import ndarray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import train_test_split
 
@@ -461,6 +463,31 @@ class SeletorTopFeatures(BaseEstimator, TransformerMixin):
         return X[:, indices]
 
 
+class LogTransformation(BaseEstimator, TransformerMixin):
+    """
+    Classe responsável por aplicar uma transformação logaritma em dados numéricos
+    
+    Parâmetros
+    ----------
+    None
+
+    Retorno
+    -------
+    :return: np.log1p(X): DataFrame após transformação [type: pd.DataFrame]
+
+    Application
+    -----------
+    log_transf = LogTransformation()
+    X_log = log_transf.fit_transform(X_num)
+    """
+    
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        return np.log1p(X)
+
+        
 """
 ---------------------------------------------------
 ------------ 2. CUSTOM TRANSFORMERS ---------------
