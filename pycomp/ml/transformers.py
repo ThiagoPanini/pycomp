@@ -466,10 +466,10 @@ class SeletorTopFeatures(BaseEstimator, TransformerMixin):
 class LogTransformation(BaseEstimator, TransformerMixin):
     """
     Classe responsável por aplicar uma transformação logaritma em dados numéricos
-    
+
     Parâmetros
     ----------
-    None
+    cols_to_log: colunas alvo da aplicação da transformação
 
     Retorno
     -------
@@ -480,12 +480,24 @@ class LogTransformation(BaseEstimator, TransformerMixin):
     log_transf = LogTransformation()
     X_log = log_transf.fit_transform(X_num)
     """
-    
+
+    def __init__(self, cols_to_log=None):
+        self.cols_to_log = cols_to_log
+
     def fit(self, X, y=None):
         return self
-    
+
     def transform(self, X, y=None):
-        return np.log1p(X)
+        # Aplicando transformação
+        if self.cols_to_log is not None:
+            if type(X) is DataFrame:
+                X[self.cols_to_log] = np.log1p(X[self.cols_to_log])
+                return X
+            elif type(X) is ndarray:
+                X[:, self.cols_to_log] = np.log1p(X[:, self.cols_to_log])
+                return X
+        else:
+            return np.log1p(X)
 
         
 """
