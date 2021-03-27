@@ -10,9 +10,9 @@
 <div align="center">
   
 ![Release](https://img.shields.io/badge/release-ok-brightgreen)
-[![PyPI](https://img.shields.io/pypi/v/pycomp?color=blueviolet)](https://pypi.org/project/pycomp/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomp?color=navy&logo=python&logoColor=white)
+[![PyPI](https://img.shields.io/pypi/v/pycomp?color=blueviolet&logo=pypi&logoColor=white)](https://pypi.org/project/pycomp/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pycomp?color=9cf)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pycomp?color=green)
 ![PyPI - Status](https://img.shields.io/pypi/status/pycomp)
 
 </div>
