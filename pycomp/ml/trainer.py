@@ -38,7 +38,7 @@ from pycomp.viz.formatador import format_spines, AnnotateBars
 """
 ---------------------------------------------------
 ------------ 1. CONFIGURAÇÃO INICIAL --------------
-        1.2 Instanciando Objetos de Log
+        1.2 Instanciando Objetos de Log 
 ---------------------------------------------------
 """
 
