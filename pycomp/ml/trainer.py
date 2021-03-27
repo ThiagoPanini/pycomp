@@ -26,6 +26,7 @@ from sklearn.model_selection import cross_val_score, cross_val_predict, learning
 from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, \
                             f1_score, confusion_matrix, roc_curve, mean_absolute_error, \
                             mean_squared_error, r2_score
+from sklearn.metrics import classification_report
 from sklearn.exceptions import NotFittedError
 import itertools
 import matplotlib.pyplot as plt
@@ -33,12 +34,13 @@ import matplotlib as mpl
 import seaborn as sns
 import shap
 from pycomp.viz.formatador import format_spines, AnnotateBars
+from math import ceil
 
 
 """
 ---------------------------------------------------
 ------------ 1. CONFIGURAÇÃO INICIAL --------------
-        1.2 Instanciando Objetos de Log
+        1.2 Instanciando Objetos de Log 
 ---------------------------------------------------
 """
 
