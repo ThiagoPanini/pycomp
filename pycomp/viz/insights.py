@@ -1457,8 +1457,8 @@ def plot_cat_aggreg_report(df, cat_col, value_col, aggreg='mean', **kwargs):
     inc_x_pos = kwargs['inc_x_pos'] if 'inc_x_pos' in kwargs else 18
     
     # Posicionamento e descrição dos indicadores estatísticos
-    stat_x_pos = kwargs['stat_title_x_pos'] if 'stat_title_x_pos' in kwargs else .17
-    stat_y_pos = kwargs['stat_title_x_pos'] if 'stat_title_x_pos' in kwargs else stat_title_y_pos-.22
+    stat_x_pos = kwargs['stat_x_pos'] if 'stat_x_pos' in kwargs else .17
+    stat_y_pos = kwargs['stat_y_pos'] if 'stat_y_pos' in kwargs else stat_title_y_pos-.22
     
     # Plotando texto inicial    
     ax3.text(desc_text_x_pos, desc_text_y_pos, desc_text, fontsize=desc_text_font, ha='center', 
